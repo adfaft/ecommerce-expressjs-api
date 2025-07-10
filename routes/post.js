@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 
-const model = 'users'; 
+const model = 'posts'; 
 
 
 // middleware that is specific to this router
@@ -23,46 +23,52 @@ const beforeRenderHook = async (req, res, next) => {
 }
 
 
-/* GET users listing. */
+/* GET posts listing. */
 router.get('/', async function(req, res, next) {
   await beforeRenderHook(req, res, next);
   res.json({data : `respond with query: ${model} list resource`});
 });
 
-/* POST users/ create data. */
+/* POST posts/ create data. */
 router.post('/', async function(req, res, next) {
   await beforeRenderHook(req, res, next);
   res.json({data : `respond with created: a ${model} resource`});
 });
 
-/* GET users/:userId data. */
-router.get('/:userId', async function(req, res, next) {
+/* GET posts/:postId data. */
+router.get('/:postId', async function(req, res, next) {
   await beforeRenderHook(req, res, next);
-  res.json({data : `respond with query (id: ${req.params.userId}): a ${model} resource`});
+  res.json({data : `respond with query (id: ${req.params.postId}): a ${model} resource`});
 });
 
-/* PUT users/ data. */
+/* PUT posts/ data. */
 router.put('/', async function(req, res, next) {
   await beforeRenderHook(req, res, next);
   res.json({data : `respond with update: a ${model} resource`});
 });
 
-/* POST users/update/:userId data. */
-router.post('/update/:userId', async function(req, res, next) {
+/* POST posts/:postId data. */
+router.post('/:postId', async function(req, res, next) {
   await beforeRenderHook(req, res, next);
-  res.json({data : `respond with update (id: ${req.params.userId}): a ${model} resource`});
+  res.json({data : `respond with update (id: ${req.params.postId}): a ${model} resource`});
 });
 
-/* DELETE users/:userId data. */
-router.delete('/:userId', async function(req, res, next) {
+/* POST posts/update/:postId data. */
+router.post('/update/:postId', async function(req, res, next) {
   await beforeRenderHook(req, res, next);
-  res.json({data : `respond with delete (id: ${req.params.userId}): a ${model} resource`});
+  res.json({data : `respond with update (id: ${req.params.postId}): a ${model} resource`});
 });
 
-/* POST users/delete/:userId data. */
-router.post('/delete/:userId', async function(req, res, next) {
+/* DELETE posts/:postId data. */
+router.delete('/:postId', async function(req, res, next) {
   await beforeRenderHook(req, res, next);
-  res.json({data : `respond with delete (id: ${req.params.userId}): a ${model} resource`});
+  res.json({data : `respond with delete (id: ${req.params.postId}): a ${model} resource`});
+});
+
+/* POST posts/delete/:postId data. */
+router.post('/delete/:postId', async function(req, res, next) {
+  await beforeRenderHook(req, res, next);
+  res.json({data : `respond with delete (id: ${req.params.postId}): a ${model} resource`});
 });
 
 module.exports = router;

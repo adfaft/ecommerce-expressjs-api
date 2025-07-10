@@ -1,11 +1,16 @@
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
-var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
+var postsRouter = require('./routes/post');
 var usersRouter = require('./routes/users');
+var usersAuthRouter = require('./routes/users-auth');
+var membersRouter = require('./routes/member');
+var productsRouter = require('./routes/product');
+var ordersRouter = require('./routes/order');
+
 
 var app = express();
 
@@ -15,12 +20,15 @@ app.set('view engine', 'twig');
 
 app.use(logger('dev'));
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
+app.use('/posts', postsRouter);
 app.use('/users', usersRouter);
+app.use('/users/auth', usersAuthRouter);
+app.use('/members', membersRouter);
+app.use('/products', productsRouter);
+app.use('/orders', ordersRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
