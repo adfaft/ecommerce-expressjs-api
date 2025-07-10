@@ -13,7 +13,9 @@
 
 ## Tasklist
 
-- [ ] All Routes : api/user, api/auth, api/member, api/product, api/order, api/cart, api/post, api/form/contact
-- [ ] Model & Seed
+- [x] All Routes : api/user, api/auth, api/member, api/product, api/order, api/cart, api/post, api/form/contact
+- [x] Model & Seed
+  - [ ] User Model password hash via zod validator
+  - [ ] User Model testing via mocha / jade
 - [ ] Authentication
 - [ ] Model Query, Validation and Pagination
