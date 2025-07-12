@@ -1,8 +1,9 @@
 const mongoose = require("mongoose");
 const { randomUUID } = require('crypto');
+const bcrypt = require('bcrypt');
 
-const SALT_WORK_FACTOR = 10;
-const MAX_LOGIN_ATTEMPTS = 5,
+const SALT_WORK_FACTOR = 10,
+  MAX_LOGIN_ATTEMPTS = 5,
   LOCK_TIME = 2 * 60 * 60 * 1000;
 
 
@@ -11,7 +12,7 @@ mongoose.set("strictQuery", true);
 const userSchema = new mongoose.Schema(
   {
     uuid: {
-      type: 'UUID',
+      type: String,
       default: randomUUID()
     },
     firstName: {
@@ -34,8 +35,13 @@ const userSchema = new mongoose.Schema(
       index: { unique: true },
       trim: true,
     },
+    phone: {
+      type: String,
+      trim: true,
+    },
     password: {
       type: String,
+      select: false,
       required: [true, "Please provide a password"],
       minlength: [8, "at least 8 characters"]
     },
@@ -45,6 +51,7 @@ const userSchema = new mongoose.Schema(
     },
     login: {
       loginAt: { type: Date },
+      lastAttemptAt:{ type: Date }, 
       loginAttempts: { type: Number, required: true, default: 0 },
       lockUntil: { type: Number }
     },
@@ -63,34 +70,20 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-userSchema.pre('save', async function (next) {
-  try {
-    // Check if the password has been modified
-    if (!this.isModified('password')) return next();
+// --- VIRTUAL ---
 
-    // Generate a salt and hash the password
-    const salt = await bcrypt.genSalt(SALT_WORK_FACTOR);
-    this.password = await bcrypt.hash(this.password, salt);
-
-    next(); // Proceed to save
-  } catch (error) {
-    next(error); // Pass any errors to the next middleware
-  }
-});
-
-userSchema.methods.isValidPassword = async function (password) {
-  try {
-    // Compare provided password with stored hash
-    return await bcrypt.compare(password, this.password);
-  } catch (error) {
-    throw new Error('Password comparison failed');
-  }
-};
+userSchema.virtual('fullName').get(function() {
+  let middle = this.middleName ? ` ${this.middleName}` : ''; 
+  return `${this.firstName}${middle} ${this.lastName}`;
+})
 
 userSchema.virtual('isLocked').get(function () {
   // check for a future lockUntil timestamp
   return !!(this.login.lockUntil && this.login.lockUntil > Date.now());
 });
+
+
+// --- METHODS ---
 
 
 userSchema.methods.incLoginAttempts = function (cb) {
@@ -117,6 +110,20 @@ userSchema.methods.incLoginAttempts = function (cb) {
   }
   return this.update(updates, cb);
 };
+
+userSchema.methods.isValidPassword = async function (password) {
+  try {
+    // Compare provided password with stored hash
+    return await bcrypt.compare(password, this.password);
+  } catch (error) {
+    throw new Error('Password comparison failed');
+  }
+};
+
+
+
+// --- STATICS ---
+
 
 // expose enum on the model, and provide an internal convenience reference 
 var reasons = userSchema.statics.failedLogin = {
@@ -172,6 +179,27 @@ userSchema.statics.getAuthenticated = function (username, password, cb) {
 
 
 };
+
+
+// --- HOOKS ---
+
+userSchema.pre('save', async function (next) {
+  try {
+    // Check if the password has been modified
+    if (!this.isModified('password')) return next();
+
+    // Generate a salt and hash the password
+    const salt = await bcrypt.genSalt(SALT_WORK_FACTOR);
+    this.password = await bcrypt.hash(this.password, salt);
+
+    next(); // Proceed to save
+  } catch (error) {
+    next(error); // Pass any errors to the next middleware
+  }
+});
+
+
+
 
 module.exports = mongoose.model("User", userSchema);
 
