@@ -6,7 +6,7 @@ const config = require("../config/app")
 // agar log bisa menampilkan max:4 deepobject
 util.inspect.defaultOptions.depth = 4
 
-const UserModel = require('../models/user.schema');
+const AdminModel = require('../models/admin.schema');
 
 const generateUsers = (num) => {
   const user = [];
@@ -57,7 +57,7 @@ const generateUsers = (num) => {
   // generate and insert 50 user data
   try{
     const users = generateUsers(50);
-    let docs = await UserModel.create(users);
+    let docs = await AdminModel.create(users);
     console.log(`${docs.length} users have been inserted into the database.`)
   }catch(error){
     console.error(error);
@@ -67,10 +67,10 @@ const generateUsers = (num) => {
     return;
   }
   
-  let sample = await UserModel.findOne().select('+password').sort({_id: -1})
+  let sample = await AdminModel.findOne().select('+password').sort({_id: -1})
   console.log(sample)
 
-  let count = await UserModel.countDocuments({});
+  let count = await AdminModel.countDocuments({});
   console.log(`total current documents: ${count}`)
 
   // close connection

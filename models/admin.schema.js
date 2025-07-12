@@ -9,24 +9,16 @@ const SALT_WORK_FACTOR = 10,
 
 mongoose.set("strictQuery", true);
 
-const userSchema = new mongoose.Schema(
+const adminSchema = new mongoose.Schema(
   {
     uuid: {
       type: String,
-      default: randomUUID()
+      default: randomUUID(),
+      index: { unique: true },
     },
-    firstName: {
+    fullName: {
       type: String,
-      required: [true, "Please provide first name"],
-      trim: true,
-    },
-    middleName: {
-      type: String,
-      trim: true,
-    },
-    lastName: {
-      type: String,
-      required: [true, "Please provide last name"],
+      required: [true, "Please provide full name"],
       trim: true,
     },
     email: {
@@ -38,6 +30,7 @@ const userSchema = new mongoose.Schema(
     phone: {
       type: String,
       trim: true,
+      index: true,
     },
     password: {
       type: String,
@@ -57,7 +50,8 @@ const userSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['active', 'inactive']
+      enum: ['active', 'inactive'],
+      index: true
     },
     role: {
       type: [String],
@@ -70,23 +64,21 @@ const userSchema = new mongoose.Schema(
   }
 );
 
+// ---------------
 // --- VIRTUAL ---
+// ---------------
 
-userSchema.virtual('fullName').get(function() {
-  let middle = this.middleName ? ` ${this.middleName}` : ''; 
-  return `${this.firstName}${middle} ${this.lastName}`;
-})
-
-userSchema.virtual('isLocked').get(function () {
+adminSchema.virtual('isLoginLocked').get(function () {
   // check for a future lockUntil timestamp
   return !!(this.login.lockUntil && this.login.lockUntil > Date.now());
 });
 
 
+// ---------------
 // --- METHODS ---
+// ---------------
 
-
-userSchema.methods.incLoginAttempts = function (cb) {
+adminSchema.methods.incLoginAttempts = function (cb) {
   // if we have a previous lock that has expired, restart at 1
   if (this.login.lockUntil && this.login.lockUntil < Date.now()) {
     return this.update({
@@ -111,7 +103,7 @@ userSchema.methods.incLoginAttempts = function (cb) {
   return this.update(updates, cb);
 };
 
-userSchema.methods.isValidPassword = async function (password) {
+adminSchema.methods.isValidPassword = async function (password) {
   try {
     // Compare provided password with stored hash
     return await bcrypt.compare(password, this.password);
@@ -121,18 +113,18 @@ userSchema.methods.isValidPassword = async function (password) {
 };
 
 
-
+// ---------------
 // --- STATICS ---
-
+// ---------------
 
 // expose enum on the model, and provide an internal convenience reference 
-var reasons = userSchema.statics.failedLogin = {
+var reasons = adminSchema.statics.failedLogin = {
   NOT_FOUND: 0,
   PASSWORD_INCORRECT: 1,
   MAX_ATTEMPTS: 2
 };
 
-userSchema.statics.getAuthenticated = function (username, password, cb) {
+adminSchema.statics.getAuthenticated = function (username, password, cb) {
   this.findOne({ username: username }, function (err, user) {
     if (err) return cb(err);
 
@@ -181,9 +173,11 @@ userSchema.statics.getAuthenticated = function (username, password, cb) {
 };
 
 
+// ---------------
 // --- HOOKS ---
+// ---------------
 
-userSchema.pre('save', async function (next) {
+adminSchema.pre('save', async function (next) {
   try {
     // Check if the password has been modified
     if (!this.isModified('password')) return next();
@@ -200,18 +194,16 @@ userSchema.pre('save', async function (next) {
 
 
 
-
-module.exports = mongoose.model("User", userSchema);
+module.exports = mongoose.model("Admins", adminSchema);
 
 
 /***
  * 
- * 
- * 
 
+// EXAMPLE
 
 // attempt to authenticate user
-User.getAuthenticated('jmar777', 'Password123', function(err, user, reason) {
+adminSchema.getAuthenticated('jmar777', 'Password123', function(err, admin, reason) {
     if (err) throw err;
 
     // login was successful if we have a user
@@ -222,7 +214,7 @@ User.getAuthenticated('jmar777', 'Password123', function(err, user, reason) {
     }
 
     // otherwise we can determine why we failed
-    var reasons = User.failedLogin;
+    var reasons = adminSchema.failedLogin;
     switch (reason) {
         case reasons.NOT_FOUND:
         case reasons.PASSWORD_INCORRECT:

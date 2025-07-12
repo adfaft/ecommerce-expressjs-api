@@ -5,7 +5,7 @@ const config = require("../config/app")
 // agar log bisa menampilkan max:4 deepobject
 util.inspect.defaultOptions.depth = 4;
 
-const UserModel = require('../models/user.schema');
+const AdminModel = require('../models/admin.schema');
 
 (async () => {
 
@@ -38,10 +38,10 @@ const UserModel = require('../models/user.schema');
     });
 
 
-  let sample = await UserModel.findOne().select('+password').sort({ _id: -1 })
+  let sample = await AdminModel.findOne().select('+password').sort({ _id: -1 })
   console.log(sample)
 
-  let count = await UserModel.countDocuments({});
+  let count = await AdminModel.countDocuments({});
   console.log(`total current documents: ${count}`)
 
   // close connection
