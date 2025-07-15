@@ -1,15 +1,15 @@
 import { faker } from "@faker-js/faker";
 import mongoose from 'mongoose';
 import util from 'util';
-import config from "../config/app";
+import AdminModel from '../database/models/admin.schema.js';
+import mongodb from '../database/mongodb.js';
 
 // agar log bisa menampilkan max:4 deepobject
 util.inspect.defaultOptions.depth = 4
 
-const AdminModel = require('../database/models/admin.schema');
 
-const generateUsers = (num) => {
-  const user = [];
+const generateUsers = (num:number) => {
+  const user:any = [];
 
   for (let i = 0; i < num; i++) {
     const sex = faker.person.sexType();
@@ -38,32 +38,18 @@ const generateUsers = (num) => {
 
 (async () => {
 
-  let db;
-  try {
-    db = await mongoose.connect(config.db_connection);
-    // const dbs = await mongoose.connection.listDatabases();
-    console.log( "connected to db" );
-
-  } catch (error) {    
-    console.error(error);
-    return;
-  }
-
-  const disconnect = () => {
-    db.disconnect();
-    console.log("db connection is closed.");
-  }
+  await mongodb.connect();
 
   // generate and insert 50 user data
   try{
     const users = generateUsers(50);
-    let docs = await AdminModel.create(users);
+    let docs:any = await AdminModel.create(users);
     console.log(`${docs.length} users have been inserted into the database.`)
-  }catch(error){
+  }catch(error:any){
     console.error(error);
     console.error(`${error.writeErrors?.length ?? 0} errors occurred during the insertMany operation.`);
     
-    disconnect();
+    mongodb.disconnect();
     return;
   }
   
@@ -74,7 +60,7 @@ const generateUsers = (num) => {
   console.log(`total current documents: ${count}`)
 
   // close connection
-  disconnect()
+  mongodb.disconnect()
   return;
 
 })()

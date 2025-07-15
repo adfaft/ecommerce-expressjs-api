@@ -1,40 +1,25 @@
 import mongoose from 'mongoose';
 import util from 'util';
-import config from "../config/app";
+import config from "../config/app.js";
+import mongodb from '../database/mongodb.js';
+import AdminModel from '../database/models/admin.schema.js';
 
 // agar log bisa menampilkan max:4 deepobject
 util.inspect.defaultOptions.depth = 4;
 
-const AdminModel = require('../database/models/admin.schema');
-
 (async () => {
 
-  let connection;
-  try {
-    connection = await mongoose.connect(await config.db_connection);
-    // const dbs = await mongoose.connection.listDatabases();
-    console.log("connected to db");
-
-  } catch (error) {
-    console.error(error);
-    return;
-  }
-
-  const disconnect = () => {
-    connection.disconnect();
-    console.log("db connection is closed.");
-  }
-
-  const db = mongoose.connection.db;
+  await mongodb.connect();
+  const db = mongodb.db()
 
   // Get all collections
-  const collections = await db.listCollections().toArray();
+  const collections = await db?.listCollections().toArray();
 
   // Create an array of collection names and drop each collection
-  collections
+  collections && collections
     .map((collection) => collection.name)
     .forEach(async (collectionName) => {
-      db.dropCollection(collectionName);
+      db?.dropCollection(collectionName);
     });
 
 
@@ -45,7 +30,7 @@ const AdminModel = require('../database/models/admin.schema');
   console.log(`total current documents: ${count}`)
 
   // close connection
-  disconnect()
+  mongodb.disconnect()
   return;
 
 })()

@@ -4,20 +4,20 @@
  * Module dependencies.
  */
 
-import app from '../app';
+import app from '../app.js';
 import debug from 'debug';
 import http from 'http';
-import { connectdb } from '../database/mongodb';
+import mongodb from '../database/mongodb.js';
 
 debug('ecommerce-api-express.test:server');
 
 /**
  * Connnect DB
  */
-const connect = async() => {
-  await connectdb();
-};
 
+const connect = async() => {
+  await mongodb.connect();
+};
 connect();
 
 
@@ -46,7 +46,7 @@ server.on('listening', onListening);
  * Normalize a port into a number, string, or false.
  */
 
-function normalizePort(val) {
+function normalizePort(val:any) {
   var port = parseInt(val, 10);
 
   if (isNaN(port)) {
@@ -66,7 +66,7 @@ function normalizePort(val) {
  * Event listener for HTTP server "error" event.
  */
 
-function onError(error) {
+function onError(error:any) {
   if (error.syscall !== 'listen') {
     throw error;
   }

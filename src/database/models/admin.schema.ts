@@ -1,3 +1,5 @@
+import { Schema, Types } from "mongoose";
+
 const mongoose = require("mongoose");
 const { randomUUID } = require('crypto');
 const bcrypt = require('bcrypt');
@@ -9,10 +11,45 @@ const SALT_WORK_FACTOR = 10,
 
 mongoose.set("strictQuery", true);
 
-const adminSchema = new mongoose.Schema(
+interface IAdminSchema {
+  uuid: Types.ObjectId,
+  fullName: string,
+  email: string,
+  phone: string,
+  password: string,
+  passwordChanged: {
+    changedAt: Date,
+    history: Array<string>
+  },
+  login: {
+    loginAt: Date,
+    lastAttemptAt: Date,
+    loginAttempts: number,
+    lockUntil: number,
+  },
+  status: string,
+  role: Array<string>
+}
+
+// expose enum on the model, and provide an internal convenience reference 
+interface FailedLoginEnum{
+  NOT_FOUND: number,
+  PASSWORD_INCORRECT: number,
+  MAX_ATTEMPTS: number
+}
+
+
+export const FailedLoginReasonEnum:FailedLoginEnum = {
+  NOT_FOUND: 0,
+  PASSWORD_INCORRECT: 1,
+  MAX_ATTEMPTS: 2
+};
+
+
+const adminSchema = new Schema<IAdminSchema>(
   {
     uuid: {
-      type: String,
+      type: Schema.Types.ObjectId,
       default: randomUUID(),
       index: { unique: true },
     },
@@ -60,7 +97,7 @@ const adminSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-    optimisticConcurrency: true
+    optimisticConcurrency: true,
   }
 );
 
@@ -74,11 +111,12 @@ adminSchema.virtual('isLoginLocked').get(function () {
 });
 
 
+
 // ---------------
 // --- METHODS ---
 // ---------------
 
-adminSchema.methods.incLoginAttempts = function (cb) {
+adminSchema.methods.incLoginAttempts = function (cb:Function) {
   // if we have a previous lock that has expired, restart at 1
   if (this.login.lockUntil && this.login.lockUntil < Date.now()) {
     return this.update({
@@ -95,7 +133,7 @@ adminSchema.methods.incLoginAttempts = function (cb) {
     }, cb);
   }
   // otherwise we're incrementing
-  var updates = { $inc: { login: { loginAttempts: 1 } } };
+  var updates:any = { $inc: { login: { loginAttempts: 1 } } };
   // lock the account if we've reached max attempts and it's not locked already
   if (this.login.loginAttempts + 1 >= MAX_LOGIN_ATTEMPTS && !this.login.isLocked) {
     updates.$set = { login: { lockUntil: Date.now() + LOCK_TIME } };
@@ -103,7 +141,7 @@ adminSchema.methods.incLoginAttempts = function (cb) {
   return this.update(updates, cb);
 };
 
-adminSchema.methods.isValidPassword = async function (password) {
+adminSchema.methods.isValidPassword = async function (password:string) {
   try {
     // Compare provided password with stored hash
     return await bcrypt.compare(password, this.password);
@@ -117,33 +155,26 @@ adminSchema.methods.isValidPassword = async function (password) {
 // --- STATICS ---
 // ---------------
 
-// expose enum on the model, and provide an internal convenience reference 
-var reasons = adminSchema.statics.failedLogin = {
-  NOT_FOUND: 0,
-  PASSWORD_INCORRECT: 1,
-  MAX_ATTEMPTS: 2
-};
-
-adminSchema.statics.getAuthenticated = function (username, password, cb) {
-  this.findOne({ username: username }, function (err, user) {
+adminSchema.statics.getAuthenticated = function (username:string, password:string, cb:Function) {
+  this.findOne({ username: username }, function (err:any, user:any) {
     if (err) return cb(err);
 
     // make sure the user exists
     if (!user || !user.login) {
-      return cb(null, null, reasons.NOT_FOUND);
+      return cb(null, null, FailedLoginReasonEnum.NOT_FOUND);
     }
 
     // check if the account is currently locked
     if (user.login.isLocked) {
       // just increment login attempts if account is already locked
-      return user.incLoginAttempts(function (err) {
+      return user.incLoginAttempts(function (err:any) {
         if (err) return cb(err);
-        return cb(null, null, reasons.MAX_ATTEMPTS);
+        return cb(null, null, FailedLoginReasonEnum.MAX_ATTEMPTS);
       });
     }
 
     // test for a matching password
-    user.comparePassword(password, function (err, isMatch) {
+    user.comparePassword(password, function (err:any, isMatch:boolean) {
       if (err) return cb(err);
 
       // check if the password was a match
@@ -155,16 +186,16 @@ adminSchema.statics.getAuthenticated = function (username, password, cb) {
           $set: { login: { loginAttempts: 0 } },
           $unset: { login: { lockUntil: 1 } }
         };
-        return user.update(updates, function (err) {
+        return user.update(updates, function (err:any) {
           if (err) return cb(err);
           return cb(null, user);
         });
       }
 
       // password is incorrect, so increment login attempts before responding
-      user.incLoginAttempts(function (err) {
+      user.incLoginAttempts(function (err:any) {
         if (err) return cb(err);
-        return cb(null, null, reasons.PASSWORD_INCORRECT);
+        return cb(null, null, FailedLoginReasonEnum.PASSWORD_INCORRECT);
       });
     });
   });
@@ -177,7 +208,7 @@ adminSchema.statics.getAuthenticated = function (username, password, cb) {
 // --- HOOKS ---
 // ---------------
 
-adminSchema.pre('save', async function (next) {
+adminSchema.pre('save', async function (next:Function) {
   try {
     // Check if the password has been modified
     if (!this.isModified('password')) return next();
@@ -193,8 +224,7 @@ adminSchema.pre('save', async function (next) {
 });
 
 
-
-module.exports = mongoose.model("Admins", adminSchema);
+export default mongoose.model("Admins", adminSchema);
 
 
 /***

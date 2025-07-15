@@ -14,6 +14,7 @@
 ## Tasklist
 
 - [x] All Routes : api/user, api/auth, api/member, api/product, api/order, api/cart, api/post, api/form/contact
+- [x] convert to typescript
 - [x] Model & Seed
   - [x] user schema
   - [x] member schema

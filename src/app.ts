@@ -1,10 +1,14 @@
 import createError from 'http-errors';
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';
 import logger from 'morgan';
 import { fileURLToPath } from 'url';
 
-import indexRouter from './routes/index';
+interface ErrorStatus extends Error{
+  status: number
+}
+
+import indexRouter from './routes/index.js';
 // import postsRouter from './routes/post';
 // import usersRouter from './routes/users';
 // import usersAuthRouter from './routes/users-auth';
@@ -15,7 +19,8 @@ import indexRouter from './routes/index';
 
 var app = express();
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+let __dirname = path.dirname(fileURLToPath(import.meta.url));
+__dirname = path.join(__dirname, '../')
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -34,12 +39,12 @@ app.use('/', indexRouter);
 // app.use('/api/v1/orders', ordersRouter);
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function(req: Request, res: Response, next: NextFunction) {
   next(createError(404));
 });
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use(function(err: ErrorStatus, req: Request, res: Response, next: NextFunction) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};

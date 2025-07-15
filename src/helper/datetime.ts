@@ -1,5 +1,5 @@
-const getAge = (dateString, now = null)  => {
-    var today = new Date(now);
+const getAge = (dateString: string, now:string|null = null) : number  => {
+    var today = typeof now === 'string' ? new Date(now) : new Date();
     var birthDate = new Date(dateString);
     var age = today.getFullYear() - birthDate.getFullYear();
     var m = today.getMonth() - birthDate.getMonth();
