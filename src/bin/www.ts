@@ -4,9 +4,22 @@
  * Module dependencies.
  */
 
-var app = require('../app');
-var debug = require('debug')('ecommerce-api-express.test:server');
-var http = require('http');
+import app from '../app';
+import debug from 'debug';
+import http from 'http';
+import { connectdb } from '../database/mongodb';
+
+debug('ecommerce-api-express.test:server');
+
+/**
+ * Connnect DB
+ */
+const connect = async() => {
+  await connectdb();
+};
+
+connect();
+
 
 /**
  * Get port from environment and store in Express.
@@ -85,6 +98,6 @@ function onListening() {
   var addr = server.address();
   var bind = typeof addr === 'string'
     ? 'pipe ' + addr
-    : 'port ' + addr.port;
+    : 'port ' + addr?.port;
   debug('Listening on ' + bind);
 }

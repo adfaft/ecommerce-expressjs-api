@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 
-const model = 'posts'; 
+const model = require('../database/models/post.schema'); 
 
 
 // middleware that is specific to this router
@@ -26,31 +26,35 @@ const beforeRenderHook = async (req, res, next) => {
 /* GET posts listing. */
 router.get('/', async function(req, res, next) {
   await beforeRenderHook(req, res, next);
-  res.json({data : `respond with query: ${model} list resource`});
+
+  const alldata = model.find();
+
+  res.json({data : alldata});
 });
 
 /* POST posts/ create data. */
 router.post('/', async function(req, res, next) {
   await beforeRenderHook(req, res, next);
-  res.json({data : `respond with created: a ${model} resource`});
+
+  const data = new model(req.body);
+  await data.save();
+  
+  res.json({data : data});
 });
 
 /* GET posts/:postId data. */
 router.get('/:postId', async function(req, res, next) {
   await beforeRenderHook(req, res, next);
-  res.json({data : `respond with query (id: ${req.params.postId}): a ${model} resource`});
+
+  const data = model.findById(req.params.postId)
+
+  res.json({data : data});
 });
 
 /* PUT posts/ data. */
-router.put('/', async function(req, res, next) {
+router.put('/:postId', async function(req, res, next) {
   await beforeRenderHook(req, res, next);
   res.json({data : `respond with update: a ${model} resource`});
-});
-
-/* POST posts/:postId data. */
-router.post('/:postId', async function(req, res, next) {
-  await beforeRenderHook(req, res, next);
-  res.json({data : `respond with update (id: ${req.params.postId}): a ${model} resource`});
 });
 
 /* POST posts/update/:postId data. */

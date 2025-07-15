@@ -1,12 +1,12 @@
-const { faker } = require("@faker-js/faker")
-const mongoose = require('mongoose');
-const util = require('util')
-const config = require("../config/app")
+import { faker } from "@faker-js/faker";
+import mongoose from 'mongoose';
+import util from 'util';
+import config from "../config/app";
 
 // agar log bisa menampilkan max:4 deepobject
 util.inspect.defaultOptions.depth = 4
 
-const AdminModel = require('../models/admin.schema');
+const AdminModel = require('../database/models/admin.schema');
 
 const generateUsers = (num) => {
   const user = [];
