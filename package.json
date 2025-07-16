@@ -17,7 +17,7 @@
     "lint": "eslint",
     "seed": "node ./dist/bin/seed.js",
     "dbreset": "node ./src/dist/bin/dbreset.js",
-    "test": "tsc && tsc-alias && jasmine",
+    "test": "tsc && tsc-alias && export NODE_OPTIONS=--enable-source-maps; jasmine",
     "build": "tsc && tsc-alias"
   },
   "dependencies": {
@@ -25,17 +25,19 @@
     "cookie-parser": "~1.4.4",
     "dotenv": "^17.2.0",
     "express": "^4.21.2",
+    "express-mongo-sanitize": "^2.2.0",
     "http-errors": "~1.6.3",
     "mongoose": "^8.16.2",
     "morgan": "~1.9.1",
-    "twig": "~0.10.3"
+    "twig": "~0.10.3",
+    "zod": "^4.0.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.31.0",
     "@faker-js/faker": "^9.9.0",
     "@hyperse/ts-node": "^1.0.3",
     "@jest/globals": "^30.0.4",
-    "@types/bcryptjs": "^2.4.6",
+    "@types/bcrypt": "^5.0.2",
     "@types/debug": "^4.1.12",
     "@types/express": "^5.0.3",
     "@types/jasmine": "^5.1.8",

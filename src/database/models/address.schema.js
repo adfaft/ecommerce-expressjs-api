@@ -1,6 +1,6 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
-const addressSchema = new mongoose.Schema(
+export const addressSchema = new mongoose.Schema(
   {
     address: {
       type: String,
@@ -44,18 +44,20 @@ const addressSchema = new mongoose.Schema(
   }
 );
 
-const provinceSchema = new mongoose.Schema({
+export const provinceSchema = new mongoose.Schema({
     name: {
         type: String,
     },
 });
 
-const regencySchema = new mongoose.Schema({
+export const regencySchema = new mongoose.Schema({
     name: {
         type: String,
     },
 });
 
-module.exports = mongoose.model("Provinces", provinceSchema);
-module.exports = mongoose.model("Regencies", regencySchema);
-module.exports = addressSchema;
+export const Provinces = mongoose.model("Provinces", provinceSchema);
+export const Regencies = mongoose.model('Regencies', regencySchema);
+export const Address = mongoose.model("Address", addressSchema);
+
+export default Address;

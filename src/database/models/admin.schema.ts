@@ -1,8 +1,6 @@
-import { Schema, Types } from "mongoose";
-
-const mongoose = require("mongoose");
-const { randomUUID } = require('crypto');
-const bcrypt = require('bcrypt');
+import mongoose, { Schema, Types} from "mongoose";
+import { randomUUID } from "crypto";
+import bcrypt from "bcrypt";
 
 const SALT_WORK_FACTOR = 10,
   MAX_LOGIN_ATTEMPTS = 5,

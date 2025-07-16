@@ -1,8 +1,8 @@
-const mongoose = require("mongoose");
-const { randomUUID } = require('crypto');
-const bcrypt = require('bcrypt');
-const { getAge } = require("../helper/datetime");
-const addressSchema = require("./address.schema");
+import mongoose, { Schema, Types} from "mongoose";
+import { randomUUID } from "crypto";
+import bcrypt  from "bcrypt";
+import { getAge } from "../helper/datetime";
+import addressSchema from "./address.schema";
 
 const SALT_WORK_FACTOR = 10,
   MAX_LOGIN_ATTEMPTS = 5,
@@ -11,7 +11,7 @@ const SALT_WORK_FACTOR = 10,
 
 mongoose.set("strictQuery", true);
 
-const memberAuthSchema = new mongoose.Schema(
+export const memberAuthSchema = new mongoose.Schema(
   {
     password: {
       type: String,
@@ -58,7 +58,7 @@ const memberAuthSchema = new mongoose.Schema(
   }
 )
 
-const memberStatusSchema = new mongoose.Schema(
+export const memberStatusSchema = new mongoose.Schema(
   {
     status: {
       type: String,
@@ -80,7 +80,7 @@ const memberStatusSchema = new mongoose.Schema(
 );
 
 
-const memberSchema = new mongoose.Schema(
+export const memberSchema = new mongoose.Schema(
   {
     uuid: {
       type: String,
@@ -269,4 +269,6 @@ memberSchema.pre('save', async function (next) {
 
 
 
-module.exports = mongoose.model("Members", memberSchema);
+export const Member = mongoose.model("Members", memberSchema);
+
+export default Member;

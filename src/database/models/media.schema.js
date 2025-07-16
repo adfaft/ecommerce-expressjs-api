@@ -1,6 +1,6 @@
-const mongoose = require("mongoose");
+import mongoose, { Schema, Types} from "mongoose";
 
-const mediaSchema = new mongoose.Schema({
+export const mediaSchema = new mongoose.Schema({
     uuid: {
         type: String,
         default: randomUUID(),
@@ -27,7 +27,7 @@ const mediaSchema = new mongoose.Schema({
     tags: [String]
 });
 
-const mediaShortSchema = new mongoose.Schema({
+export const mediaShortSchema = new mongoose.Schema({
     uuid: {
         type: String,
         default: randomUUID(),
@@ -42,5 +42,6 @@ const mediaShortSchema = new mongoose.Schema({
     repository: String,
 });
 
-module.exports = mongoose.model("Medias", mediaSchema);
-module.exports = mediaShortSchema;
+export const Medias = mongoose.model("Medias", mediaSchema);
+
+export default Medias;

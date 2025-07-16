@@ -1,12 +1,12 @@
-const mongoose = require("mongoose");
-const { randomUUID } = require('crypto');
-const productSchema = require("./product.schema");
-const addressSchema = require("./address.schema");
+import mongoose, { Schema, Types} from "mongoose";
+import { randomUUID } from "crypto";
+import productSchema from "./product.schema";
+import addressSchema from "./address.schema";
 
 
 mongoose.set("strictQuery", true);
 
-const productShortSchema = new mongoose.Schema({
+export const productShortSchema = new mongoose.Schema({
     productId: String,
     productUuid: String,
     sku: String,
@@ -18,11 +18,11 @@ const productShortSchema = new mongoose.Schema({
     stock: Number,
 });
 
-const productDetailSchema = new mongoose.Schema({
+export const productDetailSchema = new mongoose.Schema({
     ...productSchema.obj
 });
 
-const orderAttachmentSchema = new mongoose.Schema({
+export const orderAttachmentSchema = new mongoose.Schema({
     uuid: {
         type: String,
         default: randomUUID(),
@@ -37,7 +37,7 @@ const orderAttachmentSchema = new mongoose.Schema({
     repository: String,
 });
 
-const orderItemSchema = new mongoose.Schema({
+export const orderItemSchema = new mongoose.Schema({
     uuid: {
         type: String,
         default: randomUUID(),
@@ -49,7 +49,7 @@ const orderItemSchema = new mongoose.Schema({
     productDetail : productDetailSchema
 });
 
-const orderStatusHistorySchema = new mongoose.Schema({
+export const orderStatusHistorySchema = new mongoose.Schema({
     orderId: mongoose.Types.ObjectId,
     deliveryAt: Date,
     name: String,
@@ -59,7 +59,7 @@ const orderStatusHistorySchema = new mongoose.Schema({
     timestamps: true
 });
 
-const cartSchema = new mongoose.Schema({
+export const cartSchema = new mongoose.Schema({
     uuid: {
       type: String,
       default: randomUUID(),
@@ -76,7 +76,7 @@ const cartSchema = new mongoose.Schema({
     optimisticConcurrency: true
 });
 
-const shippingSchema = new mongoose.Schema({
+export const shippingSchema = new mongoose.Schema({
     orderId: mongoose.Schema.ObjectId,
     address: addressSchema,
     weight: Number,
@@ -93,14 +93,14 @@ const shippingSchema = new mongoose.Schema({
     shippingTrackUrl: String,
 });
 
-const orderShippingHistorySchema = new mongoose.Schema({
+export const orderShippingHistorySchema = new mongoose.Schema({
     updatedAt: Date,
     destination: String,
     message: String,
     attachment: [orderAttachmentSchema]
 });
 
-const orderSchema = new mongoose.Schema({
+export const orderSchema = new mongoose.Schema({
     ...cartSchema.obj,
     status : String,
     statusHistory : [orderStatusHistorySchema],
@@ -131,9 +131,10 @@ const orderSchema = new mongoose.Schema({
 // ---------------
 
 
-module.exports = mongoose.model("OrderItems", orderItemSchema);
-module.exports = mongoose.model("ProductDetails", productDetailSchema);
-module.exports = mongoose.model("Carts", cartSchema);
-module.exports = mongoose.model("Orders", orderSchema);
-module.exports = mongoose.model("OrderAttachments", orderAttachmentSchema);
+export const OrderItems = mongoose.model("OrderItems", orderItemSchema);
+export const ProductDetails = mongoose.model("ProductDetails", productDetailSchema);
+export const Carts = mongoose.model("Carts", cartSchema);
+export const Orders = mongoose.model("Orders", orderSchema);
+export const OrderAttachments = mongoose.model("OrderAttachments", orderAttachmentSchema);
 
+export default Orders;

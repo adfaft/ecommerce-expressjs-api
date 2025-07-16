@@ -1,7 +1,7 @@
-const mongoose = require("mongoose");
+import mongoose, { Schema, Types} from "mongoose";
 const { randomUUID } = require("crypto")
 
-const skuSchema = new mongoose.Schema({
+export const skuSchema = new mongoose.Schema({
     code: {
         type: String,
         required: true,
@@ -19,7 +19,7 @@ const skuSchema = new mongoose.Schema({
     discountedPrice: Number
 });
 
-const skuDiscountSchema = new mongoose.Schema({
+export const skuDiscountSchema = new mongoose.Schema({
     code: {
         type: String,
         required: true,
@@ -35,7 +35,7 @@ const skuDiscountSchema = new mongoose.Schema({
 });
 
 
-const productCategorySchema = new mongoose.Schema({
+export const productCategorySchema = new mongoose.Schema({
     name: {
         type: String,
         required: true,
@@ -57,7 +57,7 @@ const productCategorySchema = new mongoose.Schema({
     }
 });
 
-const variantAttrSchema = new mongoose.Schema({
+export const variantAttrSchema = new mongoose.Schema({
     category: {
         // example: clothes_top
         type: String,
@@ -73,7 +73,7 @@ const variantAttrSchema = new mongoose.Schema({
 });
 
 
-const productSchema = new mongoose.Schema({
+export const productSchema = new mongoose.Schema({
     uuid: {
         type: String,
         default: randomUUID()
@@ -102,7 +102,9 @@ const productSchema = new mongoose.Schema({
 });
 
 
-module.exports = mongoose.model("Skus", skuSchema);
-module.exports = mongoose.model("Products", productSchema);
+export const Skus = mongoose.model("Skus", skuSchema);
+export const Products = mongoose.model("Products", productSchema);
+
+export default Products;
 
 

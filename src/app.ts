@@ -3,13 +3,11 @@ import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';
 import logger from 'morgan';
 import { fileURLToPath } from 'url';
-
-interface ErrorStatus extends Error{
-  status: number
-}
+import ExpressMongoSanitize from 'express-mongo-sanitize';
+import { ErrorStatus } from './utils/error.js';
 
 import indexRouter from './routes/index.js';
-// import postsRouter from './routes/post';
+import postsRouter from './routes/post.js';
 // import usersRouter from './routes/users';
 // import usersAuthRouter from './routes/users-auth';
 // import membersRouter from './routes/member';
@@ -26,12 +24,15 @@ __dirname = path.join(__dirname, '../')
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'twig');
 
+
+// middleware
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(ExpressMongoSanitize())
 
 app.use('/', indexRouter);
-// app.use('/api/v1/posts', postsRouter);
+app.use('/api/v1/posts', postsRouter);
 // app.use('/api/v1/users', usersRouter);
 // app.use('/api/v1/users/auth', usersAuthRouter);
 // app.use('/api/v1/members', membersRouter);
@@ -44,7 +45,12 @@ app.use(function(req: Request, res: Response, next: NextFunction) {
 });
 
 // error handler
-app.use(function(err: ErrorStatus, req: Request, res: Response, next: NextFunction) {
+app.use(function(
+    err: ErrorStatus, 
+    req: Request, 
+    res: Response, 
+    next: NextFunction
+  ) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};

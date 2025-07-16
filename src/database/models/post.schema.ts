@@ -1,10 +1,10 @@
-const mongoose = require("mongoose");
-const { randomUUID } = require("crypto");
+import mongoose, { Schema, Types} from "mongoose";
+import { randomUUID } from "crypto";
 
 
 mongoose.set("strictQuery", true);
 
-const postCategorySchema = new mongoose.Schema({
+export const postCategorySchema = new Schema({
     name: {
         type: String,
         required: true,
@@ -26,7 +26,7 @@ const postCategorySchema = new mongoose.Schema({
     }
 });
 
-const seoSchema = new mongoose.Schema({
+export const seoSchema = new mongoose.Schema({
     title: String,
     description: String,
     keyword: String,
@@ -36,7 +36,7 @@ const seoSchema = new mongoose.Schema({
     urlRedirectStatus: Number
 });
 
-const translationSchema = new mongoose.Schema({
+export const translationSchema = new mongoose.Schema({
     postId: mongoose.Types.ObjectId,
     type: String,
     lang: String,
@@ -45,7 +45,7 @@ const translationSchema = new mongoose.Schema({
     url: String,
 });
 
-const postSchema = new mongoose.Schema(
+export const postSchema = new mongoose.Schema(
   {
     uuid: {
       type: String,
@@ -77,7 +77,10 @@ const postSchema = new mongoose.Schema(
     category : [postCategorySchema],
     tags : [String]
 
-}
+    },
+    {
+        timestamps: true,
+    }
 );
 
 // ---------------
@@ -102,5 +105,6 @@ const postSchema = new mongoose.Schema(
 // ---------------
 
 
+export const Posts = mongoose.model("Posts", postSchema);
 
-module.exports = mongoose.model("Posts", postSchema);
+export default Posts;
