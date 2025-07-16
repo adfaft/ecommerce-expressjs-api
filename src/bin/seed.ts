@@ -2,7 +2,7 @@ import { faker } from "@faker-js/faker";
 import mongoose from 'mongoose';
 import util from 'util';
 import AdminModel from '../database/models/admin.schema.js';
-import mongodb from '../database/mongodb.js';
+import { connect, currentdb, disconnect } from '../database/mongodb.js';
 
 // agar log bisa menampilkan max:4 deepobject
 util.inspect.defaultOptions.depth = 4
@@ -38,7 +38,8 @@ const generateUsers = (num:number) => {
 
 (async () => {
 
-  await mongodb.connect();
+  await connect();
+  const db = currentdb();
 
   // generate and insert 50 user data
   try{
@@ -49,7 +50,7 @@ const generateUsers = (num:number) => {
     console.error(error);
     console.error(`${error.writeErrors?.length ?? 0} errors occurred during the insertMany operation.`);
     
-    mongodb.disconnect();
+    await disconnect();
     return;
   }
   
@@ -60,7 +61,7 @@ const generateUsers = (num:number) => {
   console.log(`total current documents: ${count}`)
 
   // close connection
-  mongodb.disconnect()
+  await disconnect();
   return;
 
 })()

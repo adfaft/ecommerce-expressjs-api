@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import util from 'util';
 import config from "../config/app.js";
-import mongodb from '../database/mongodb.js';
+import { connect, currentdb, disconnect } from '../database/mongodb.js';
 import AdminModel from '../database/models/admin.schema.js';
 
 // agar log bisa menampilkan max:4 deepobject
@@ -9,8 +9,9 @@ util.inspect.defaultOptions.depth = 4;
 
 (async () => {
 
-  await mongodb.connect();
-  const db = mongodb.db()
+  await connect();
+
+  const db = currentdb();
 
   // Get all collections
   const collections = await db?.listCollections().toArray();
@@ -30,7 +31,7 @@ util.inspect.defaultOptions.depth = 4;
   console.log(`total current documents: ${count}`)
 
   // close connection
-  mongodb.disconnect()
+  await disconnect();
   return;
 
 })()

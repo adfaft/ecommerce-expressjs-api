@@ -17,7 +17,7 @@
     "lint": "eslint",
     "seed": "node ./dist/bin/seed.js",
     "dbreset": "node ./src/dist/bin/dbreset.js",
-    "test": "tsc && tsc-alias && export NODE_OPTIONS=--enable-source-maps; jasmine",
+    "test": "tsc && tsc-alias && export NODE_OPTIONS=--enable-source-maps; jasmine --config=./test/support/jasmine.mjs",
     "build": "tsc && tsc-alias"
   },
   "dependencies": {
@@ -26,6 +26,7 @@
     "dotenv": "^17.2.0",
     "express": "^4.21.2",
     "express-mongo-sanitize": "^2.2.0",
+    "express-validator": "^7.2.1",
     "http-errors": "~1.6.3",
     "mongoose": "^8.16.2",
     "morgan": "~1.9.1",

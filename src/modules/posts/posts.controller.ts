@@ -1,9 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import asyncHandler from '@app/utils/route_catch_async.js';
 import { ErrorStatus } from '@app/utils/error.js';
-import * as z from "zod";
+import validation from './posts.validation.js';
 
 import Model from '@model/post.schema.js';
+
 
 // middleware that is specific to this router
 let time: number = 0;
@@ -11,23 +12,23 @@ let time: number = 0;
 export const beforeStartHook = async (req: Request, res: Response, next: NextFunction) => {
     Promise.resolve().then(() => {
         time = Date.now()
-        console.log(`BEGIN: `, time)
+        // console.log(`BEGIN: `, time)
     });
 };
 
 export const beforeRenderHook = async (req: Request, res: Response, next: NextFunction) => {
     Promise.resolve().then(() => {
         time = Date.now() - time
-        console.log(`ELAPSED: ${(time / 1000).toFixed(3)} s`)
+        // console.log(`ELAPSED: ${(time / 1000).toFixed(3)} s`)
     })
 };
 
 export const find = asyncHandler(async function (req: Request, res: Response, next: NextFunction) {
-    await beforeStartHook(req, res, next);
+    // await beforeStartHook(req, res, next);
 
-    const alldata = await Model.find({}).exec();
+    const alldata = await Model.find({});
 
-    await beforeRenderHook(req, res, next);
+    // await beforeRenderHook(req, res, next);
 
     res.status(200).json({ data: alldata });
 
@@ -54,7 +55,7 @@ export const findById = asyncHandler(async function(req: Request, res: Response,
 
     const data = await Model.findById(req.params.id);
     if( ! data ){
-        throw new ErrorStatus(402, "empty data");
+        throw new ErrorStatus(402, "empty");
     }
 
     await beforeRenderHook(req, res, next);
@@ -78,6 +79,7 @@ export default {
     create,
     findById,
     updateById,
-    deleteById
+    deleteById,
+    ...validation
 }
 

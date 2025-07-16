@@ -28,7 +28,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/node_modules/jasmine/bin/jasmine.js",
             "args": [
-                "--config=${workspaceFolder}/spec/support/jasmine.mjs",
+                "--config=${workspaceFolder}/test/support/jasmine.mjs",
                 "${workspaceFolder}/${relativeFileDirname}/${fileBasenameNoExtension}.js"
             ],
             "preLaunchTask": "npm: build",

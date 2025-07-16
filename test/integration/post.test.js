@@ -1,12 +1,7 @@
 import request from "supertest";
 import app from "../../dist/app.js";
-import mongodb from '../../dist/database/mongodb.js';
 
 describe("Test Posts Crud", () => {
-
-  beforeAll(async () => {
-    await mongodb.connect();
-  });
   
   // list empty
   it("GET /api/v1/posts      should response EMPTY post list", async () => {
@@ -16,11 +11,17 @@ describe("Test Posts Crud", () => {
   });
 
   // get empty
-  it("GET /:postId   should response EMPTY post data", async () => {
-    const response = await request(app).get("/api/v1/posts/00000-99999");
-    console.log(response.text);
-    expect(response.statusCode).toBe(404);
-    // expect(response.text).toEqual(jasmine.stringContaining("Page not found."));
+  it("GET /:id   should response EMPTY post data", async () => {
+    const response = await request(app).get("/api/v1/posts/01234567890123456789abcd");
+    expect(response.statusCode).toBe(402);
+    expect(response.body.message).toEqual("empty");
+  });
+
+  // get empty
+  it("GET /:id   should response failed :id validation", async () => {
+    const response = await request(app).get("/api/v1/posts/01234567890");
+    expect(response.statusCode).toBe(400);
+    expect(response.body.errors?.[0]?.message).toEqual("Not a valid ObjectId");
   });
 
   // create
@@ -38,7 +39,7 @@ describe("Test Posts Crud", () => {
   });
 
   // get
-  xit("GET /:postId   should response post data", async () => {
+  xit("GET /:id   should response post data", async () => {
     const response = await request(app).get("/404");
     expect(response.statusCode).toBe(404);
     expect(response.text).toEqual(expect.stringContaining("Page not found."));
@@ -52,21 +53,21 @@ describe("Test Posts Crud", () => {
   });
 
   // update
-  xit("POST /update/:postId   should response updated post data", async () => {
+  xit("POST /update/:id   should response updated post data", async () => {
     const response = await request(app).get("/404");
     expect(response.statusCode).toBe(404);
     expect(response.text).toEqual(expect.stringContaining("Page not found."));
   });
 
   // delete
-  xit("DELETE /:postId   should response deleted post data", async () => {
+  xit("DELETE /:id   should response deleted post data", async () => {
     const response = await request(app).get("/404");
     expect(response.statusCode).toBe(404);
     expect(response.text).toEqual(expect.stringContaining("Page not found."));
   });
 
   // delete
-  xit("POST /delete/:postId   should response deleted post data", async () => {
+  xit("POST /delete/:id   should response deleted post data", async () => {
     const response = await request(app).get("/404");
     expect(response.statusCode).toBe(404);
     expect(response.text).toEqual(expect.stringContaining("Page not found."));
@@ -94,22 +95,17 @@ describe("Test Posts Crud", () => {
   });
 
   // update : validation error
-  xit("POST /update/:postId   should response updated post data with validation error", async () => {
+  xit("POST /update/:id   should response updated post data with validation error", async () => {
     const response = await request(app).get("/404");
     expect(response.statusCode).toBe(404);
     expect(response.text).toEqual(expect.stringContaining("Page not found."));
   });
 
   // delete : not exist 
-  xit("POST /delete/:postId   should response post data error for not exist", async () => {
+  xit("POST /delete/:id   should response post data error for not exist", async () => {
     const response = await request(app).get("/404");
     expect(response.statusCode).toBe(404);
     expect(response.text).toEqual(expect.stringContaining("Page not found."));
-  });
-
-
-  afterAll(() => {
-    mongodb.disconnect();
   });
 
 });

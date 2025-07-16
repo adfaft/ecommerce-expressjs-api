@@ -4,7 +4,9 @@ import path from 'path';
 import logger from 'morgan';
 import { fileURLToPath } from 'url';
 import ExpressMongoSanitize from 'express-mongo-sanitize';
+
 import { ErrorStatus } from './utils/error.js';
+import { connect } from './database/mongodb.js';
 
 import indexRouter from './routes/index.js';
 import postsRouter from './routes/post.js';
@@ -51,13 +53,31 @@ app.use(function(
     res: Response, 
     next: NextFunction
   ) {
+
+  if( typeof err.status === "undefined" ){
+    err = new ErrorStatus(500, err.message, err);
+  }
+
+  let { status, message } = err;
+  status = status || 500;
+
   // set locals, only providing error in development
-  res.locals.message = err.message;
+  res.locals.message = message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
 
   // render the error page
-  res.status(err.status || 500);
-  res.render('error');
+  res.status(status);
+  
+  res.json({ status, message });
 });
+
+
+
+/**
+ * Connnect DB
+ */
+
+connect().catch( (err) => { console.log(err) } )
+
 
 export default app;

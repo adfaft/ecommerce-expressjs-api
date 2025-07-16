@@ -1,10 +1,10 @@
 export class ErrorMessage extends Error{
 
-    trace:any = null;
+    prev:Error|null = null;
 
-    constructor(message: string, trace: any|null = null){
+    constructor(message: string, prev: Error|null = null){
         super(message);
-        this.trace = trace;
+        this.prev = prev;
     }
 }
 
@@ -12,8 +12,8 @@ export class ErrorStatus extends ErrorMessage{
 
     status:number = 0;
 
-    constructor(status:number, message: string, trace: any|null = null){
-        super(message, trace);
+    constructor(status:number, message: string, prev: Error|null = null){
+        super(message, prev);
         this.status = status;
     }
 

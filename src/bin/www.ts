@@ -7,19 +7,8 @@
 import app from '../app.js';
 import debug from 'debug';
 import http from 'http';
-import mongodb from '../database/mongodb.js';
 
 debug('ecommerce-api-express.test:server');
-
-/**
- * Connnect DB
- */
-
-const connect = async() => {
-  await mongodb.connect();
-};
-connect();
-
 
 /**
  * Get port from environment and store in Express.

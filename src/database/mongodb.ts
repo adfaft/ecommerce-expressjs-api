@@ -1,43 +1,39 @@
 import mongoose, { Mongoose } from 'mongoose';
 import config from '@config/app.js';
 
-class MongoDb{
+let connection: Mongoose | null = null;
 
-    private connection: Mongoose|null = null;
+export const connect = async () : Promise<Mongoose | undefined> => {
+    if (connection) return connection;
+    
+    connection = await mongoose.connect(config.db_connection);
+    // const dbs = await mongoose.connection.listDatabases();
+    // console.log("connected to db");
 
-    async connect() : Promise<Mongoose|undefined> {
-        try {
-            this.connection = await mongoose.connect(await config.db_connection);
-            // const dbs = await mongoose.connection.listDatabases();
-            console.log("connected to db");
-
-            return this.connection;
-
-        } catch (error) {
-            console.error(error);
-            
-            return;
-        }
-    }
-
-    async dblist() : Promise<string[]> {
-        const db = this.db();
-        
-        const dblist = await db?.listCollections().map(x => x.name).toArray();
-        
-        return dblist || [];
-    }
-
-    db(): mongoose.mongo.Db|undefined {
-        return this.connection?.connection.db;
-    }
-
-    disconnect(): void {
-        this.connection?.disconnect();
-        console.log("db connection is closed.");
-    }
+    return connection;
 }
 
-const mongodb = new MongoDb();
+export const currentdb = () : mongoose.mongo.Db | undefined => {
+    return connection?.connection.db;
+}
 
-export default mongodb;
+export const dblist = async () : Promise<string[]> => {
+    const db = currentdb();
+    const dblist = await db?.listCollections().map(x => x.name).toArray();
+    return dblist || [];
+}
+
+
+export const disconnect = async () : Promise<void> => {
+
+    await connection?.disconnect();
+    connection = null;
+    // console.log("db connection is closed.");
+}
+
+export default {
+    connect,
+    currentdb,
+    disconnect,
+    dblist
+};
