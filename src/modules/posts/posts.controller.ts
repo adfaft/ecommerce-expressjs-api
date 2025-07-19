@@ -30,7 +30,6 @@ export const find = asyncHandler(async function (req: Request, res: Response, ne
     await beforeStartHook(req, res, next);
 
     const query = new MongoQuery(Model.find())
-        .where({status: "publish"})
         .pagination(1, 10)
         .getQuery();
 

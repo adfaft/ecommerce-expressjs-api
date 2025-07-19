@@ -13,13 +13,13 @@ export enum PostStatusEnum {
 }
 
 export interface ISeo{
-    title: string,
-    description: string,
-    keyword: string,
-    image: string,
-    urlCanonical: string,
-    urlRedirect: string,
-    urlRedirectStatus: number
+    title?: string,
+    description?: string,
+    keyword?: string,
+    image?: string,
+    urlCanonical?: string,
+    urlRedirect?: string,
+    urlRedirectStatus?: number
 }
 
 export const seoSchema = new mongoose.Schema<ISeo>({
@@ -51,7 +51,7 @@ export const translationSchema = new mongoose.Schema<ITranslation>({
 });
 
 export interface IPost{
-    uuid: string,
+    uuid: Schema.Types.UUID,
     title: string,
     slug: string,
     excerpt: string,
@@ -66,12 +66,18 @@ export interface IPost{
         featuredImageMobile: string,
     },
     tags: string[],
-    author?: Types.ObjectId,
-    editor?: Types.ObjectId
+    author?: {
+        authorId: Types.ObjectId,
+        name: string
+    },
+    editor?: {
+        editorId: Types.ObjectId,
+        name: string
+    }
 }
 
 export const postSchema = new mongoose.Schema<IPost, Model<IPost>>({
-    uuid: { type: String, default: () => randomUUID(), unique: true },
+    uuid: { type: Schema.Types.UUID, default: () => randomUUID(), unique: true },
     title: { type: String, required: true, maxLength: 150 },
     slug: { type: String, required: true, maxLength: 150 },
     excerpt: String,
@@ -86,8 +92,14 @@ export const postSchema = new mongoose.Schema<IPost, Model<IPost>>({
         featuredImageMobile: String,
     },
     tags: [String],
-    author: { type: Schema.Types.ObjectId, ref: 'admins' },
-    editor: { type: Schema.Types.ObjectId, ref: 'admins'}
+    author: { 
+        authorId: { type: Schema.Types.ObjectId, ref: 'admins' },
+        name: String,
+     },
+    editor: {
+        editorId: { type: Schema.Types.ObjectId, ref: 'admins'},
+        name: String
+    }
 
 }, {
     timestamps: true

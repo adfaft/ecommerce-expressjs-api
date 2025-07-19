@@ -1,4 +1,4 @@
-import mongoose, { Schema, Types} from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import { randomUUID } from "crypto";
 import bcrypt from "bcrypt";
 
@@ -10,7 +10,7 @@ const SALT_WORK_FACTOR = 10,
 mongoose.set("strictQuery", true);
 
 export interface IAdmin {
-  uuid: Types.ObjectId,
+  uuid: Schema.Types.UUID,
   fullName: string,
   email: string,
   phone: string,
@@ -35,14 +35,22 @@ export enum FailedLoginReasonEnum {
   MAX_ATTEMPTS = 2
 };
 
+export enum AdminStatusEnum{
+  active = "active",
+  inactive = "inactive"
+}
+
+export enum AdminRoleEnum{
+  admin = "admin",
+  author = "author",
+  editor = "editor",
+  guest = "guest"
+}
+
 
 const adminSchema = new Schema<IAdmin>(
   {
-    uuid: {
-      type: Schema.Types.ObjectId,
-      default: randomUUID(),
-      index: { unique: true },
-    },
+    uuid: { type: Schema.Types.UUID, default: randomUUID(), unique: true, },
     fullName: {
       type: String,
       required: [true, "Please provide full name"],
@@ -54,11 +62,7 @@ const adminSchema = new Schema<IAdmin>(
       index: { unique: true },
       trim: true,
     },
-    phone: {
-      type: String,
-      trim: true,
-      index: true,
-    },
+    phone: { type: String, trim: true, index: true, },
     password: {
       type: String,
       select: false,
@@ -75,15 +79,8 @@ const adminSchema = new Schema<IAdmin>(
       loginAttempts: { type: Number, required: true, default: 0 },
       lockUntil: { type: Number }
     },
-    status: {
-      type: String,
-      enum: ['active', 'inactive'],
-      index: true
-    },
-    role: {
-      type: [String],
-      enum: ['admin', 'guest'],
-    }
+    status: { type: String, enum: AdminStatusEnum, },
+    role: { type: [String], enum: AdminRoleEnum, }
   },
   {
     timestamps: true,
