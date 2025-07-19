@@ -55,10 +55,10 @@ app.use(function(
   ) {
 
   if( typeof err.status === "undefined" ){
-    err = new ErrorStatus(500, err.message, err);
+    err = new ErrorStatus(500, err.message, {}, err);
   }
 
-  let { status, message } = err;
+  let { status, message, error } = err;
   status = status || 500;
 
   // set locals, only providing error in development
@@ -68,7 +68,7 @@ app.use(function(
   // render the error page
   res.status(status);
   
-  res.json({ status, message });
+  res.json({ status, message, error });
 });
 
 

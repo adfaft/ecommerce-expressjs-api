@@ -102,8 +102,8 @@ export const productSchema = new mongoose.Schema({
 });
 
 
-export const Skus = mongoose.model("Skus", skuSchema);
-export const Products = mongoose.model("Products", productSchema);
+export const Skus = mongoose.model("skus", skuSchema);
+export const Products = mongoose.model("products", productSchema);
 
 export default Products;
 

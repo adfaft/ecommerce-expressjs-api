@@ -1,29 +1,24 @@
-import mongoose, { Schema, Types} from "mongoose";
+import mongoose, { Schema, Types } from "mongoose";
 import { randomUUID } from "crypto";
 
+export enum PostTypeEnum {
+    page = "page",
+    post = "post"
+}
 
-mongoose.set("strictQuery", true);
+export enum PostStatusEnum {
+    draft = "draft",
+    publish = "publish",
+    review = "review"
+}
+
 
 export const postCategorySchema = new Schema({
-    name: {
-        type: String,
-        required: true,
-        maxLength: 100,
-    },
-    slug: {
-        type: String,
-        required: true,
-        maxLength: 100,
-    },
-    parent: {
-        type: mongoose.Types.ObjectId
-    },
-    breadcrumbs: {
-        type: [String],
-    },
-    breadcrumbsPath: {
-        type: [String],
-    }
+    name: { type: String, required: true, maxLength: 150 },
+    slug: { type: String, required: true, unique: true, maxLength: 150 },
+    parent: { type: mongoose.Types.ObjectId },
+    breadcrumbsId: { type: [String], },
+    breadcrumbsSlug: { type: [mongoose.Types.ObjectId], },
 });
 
 export const seoSchema = new mongoose.Schema({
@@ -45,43 +40,48 @@ export const translationSchema = new mongoose.Schema({
     url: String,
 });
 
-export const postSchema = new mongoose.Schema(
-  {
-    uuid: {
-      type: String,
-      default: randomUUID(),
-      index: { unique: true },
-    },
-    title : { type: String, required: true},
-    slug : { type: String, required: true},
-    excerpt : String,
-    content : String,
-    type : { 
-        type: String, 
-        required: true,
-        enum: ['post', 'page']
-    },
-    lang : { type: String, required: true},
-    url : { type: String, required: true},
-    translation : [translationSchema],
-    status : { 
-        type: String, 
-        required: true, 
-        enum : ['draft', 'published', 'review']
-    },
-    meta : {
+export const postSchema = new mongoose.Schema({
+    uuid: { type: String, default: () => randomUUID(), unique: true },
+    title: { type: String, required: true, maxLength: 150 },
+    slug: { type: String, required: true, maxLength: 150 },
+    excerpt: String,
+    content: String,
+    type: { type: String, required: true, enum: PostTypeEnum },
+    lang: { type: String, required: true },
+    url: String,
+    translation: [translationSchema],
+    status: { type: String, required: true, enum: PostStatusEnum },
+    meta: {
         seo: seoSchema,
         featuredImage: String,
         featuredImageMobile: String,
     },
-    category : [postCategorySchema],
-    tags : [String]
-
+    category: [{ 
+        categoryId: { type: Schema.Types.ObjectId, ref: 'post_categories' },
+        name: String,
+        slug: String,
+        breadcrumbsSlug: [String]
+     }],
+    tags: [String],
+    author: { 
+        authorId: { type: Schema.Types.ObjectId, ref: 'admins' },
+        name: String,
     },
-    {
-        timestamps: true,
+    editor: {
+        editorId: { type: Schema.Types.ObjectId, ref: 'admins'},
+        name: String
     }
-);
+
+}, {
+    timestamps: true
+});
+
+// ---------------
+// --- INDEX ---
+// ---------------
+
+postSchema.index({ type: 1, lang: 1, slug: 1 }, { unique: true });
+
 
 // ---------------
 // --- VIRTUAL ---
@@ -105,6 +105,7 @@ export const postSchema = new mongoose.Schema(
 // ---------------
 
 
-export const Posts = mongoose.model("Posts", postSchema);
+export const PostCategories = mongoose.model("post_categories", postCategorySchema);
+export const Posts = mongoose.model("posts", postSchema);
 
 export default Posts;

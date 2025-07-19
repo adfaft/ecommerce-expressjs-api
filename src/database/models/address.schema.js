@@ -56,8 +56,8 @@ export const regencySchema = new mongoose.Schema({
     },
 });
 
-export const Provinces = mongoose.model("Provinces", provinceSchema);
-export const Regencies = mongoose.model('Regencies', regencySchema);
-export const Address = mongoose.model("Address", addressSchema);
+export const Provinces = mongoose.model("provinces", provinceSchema);
+export const Regencies = mongoose.model('regencies', regencySchema);
+export const Address = mongoose.model("addresses", addressSchema);
 
 export default Address;

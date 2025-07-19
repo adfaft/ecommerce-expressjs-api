@@ -31,3 +31,7 @@
   
 - [ ] Authentication
 - [ ] Model Query, Validation and Pagination
+
+
+Question
+- Jasmine, bagaimana caranya membuat sequential test, dimana hasil dari sebuah state bisa dikirimkan ke next test?

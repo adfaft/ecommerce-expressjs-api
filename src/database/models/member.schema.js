@@ -269,6 +269,6 @@ memberSchema.pre('save', async function (next) {
 
 
 
-export const Member = mongoose.model("Members", memberSchema);
+export const Member = mongoose.model("members", memberSchema);
 
 export default Member;

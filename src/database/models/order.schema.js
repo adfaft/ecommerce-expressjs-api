@@ -131,10 +131,10 @@ export const orderSchema = new mongoose.Schema({
 // ---------------
 
 
-export const OrderItems = mongoose.model("OrderItems", orderItemSchema);
-export const ProductDetails = mongoose.model("ProductDetails", productDetailSchema);
-export const Carts = mongoose.model("Carts", cartSchema);
-export const Orders = mongoose.model("Orders", orderSchema);
-export const OrderAttachments = mongoose.model("OrderAttachments", orderAttachmentSchema);
+export const OrderItems = mongoose.model("order_items", orderItemSchema);
+export const ProductDetails = mongoose.model("product_details", productDetailSchema);
+export const Carts = mongoose.model("carts", cartSchema);
+export const Orders = mongoose.model("orders", orderSchema);
+export const OrderAttachments = mongoose.model("order_attachments", orderAttachmentSchema);
 
 export default Orders;

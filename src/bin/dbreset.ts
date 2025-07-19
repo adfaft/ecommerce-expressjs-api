@@ -1,8 +1,6 @@
-import mongoose from 'mongoose';
 import util from 'util';
-import config from "../config/app.js";
-import { connect, currentdb, disconnect } from '../database/mongodb.js';
-import AdminModel from '../database/models/admin.schema.js';
+import { connect, currentdb, disconnect } from '@app/database/mongodb.js';
+import AdminModel from '@model/admin.schema.js';
 
 // agar log bisa menampilkan max:4 deepobject
 util.inspect.defaultOptions.depth = 4;
@@ -14,21 +12,27 @@ util.inspect.defaultOptions.depth = 4;
   const db = currentdb();
 
   // Get all collections
-  const collections = await db?.listCollections().toArray();
+  let collections = await db?.listCollections().toArray() ?? [];
 
-  // Create an array of collection names and drop each collection
-  collections && collections
-    .map((collection) => collection.name)
-    .forEach(async (collectionName) => {
-      db?.dropCollection(collectionName);
-    });
+  console.log("collections before");
+  console.log(collections);
 
+  for( const item of collections){
+    try{
+      await db?.dropCollection(item.name);
+    }catch(err){
+      console.log(err)
+    }
+  }
+  
+  collections = await db?.listCollections().toArray() ?? [];
 
-  let sample = await AdminModel.findOne().select('+password').sort({ _id: -1 })
-  console.log(sample)
+  console.log("collections after");
+  console.log(collections);
 
-  let count = await AdminModel.countDocuments({});
-  console.log(`total current documents: ${count}`)
+  await db?.dropDatabase();
+
+  console.log("database drop");
 
   // close connection
   await disconnect();

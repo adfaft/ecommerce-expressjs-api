@@ -9,7 +9,7 @@ const SALT_WORK_FACTOR = 10,
 
 mongoose.set("strictQuery", true);
 
-interface IAdminSchema {
+export interface IAdmin {
   uuid: Types.ObjectId,
   fullName: string,
   email: string,
@@ -29,22 +29,14 @@ interface IAdminSchema {
   role: Array<string>
 }
 
-// expose enum on the model, and provide an internal convenience reference 
-interface FailedLoginEnum{
-  NOT_FOUND: number,
-  PASSWORD_INCORRECT: number,
-  MAX_ATTEMPTS: number
-}
-
-
-export const FailedLoginReasonEnum:FailedLoginEnum = {
-  NOT_FOUND: 0,
-  PASSWORD_INCORRECT: 1,
-  MAX_ATTEMPTS: 2
+export enum FailedLoginReasonEnum {
+  NOT_FOUND = 0,
+  PASSWORD_INCORRECT = 1,
+  MAX_ATTEMPTS = 2
 };
 
 
-const adminSchema = new Schema<IAdminSchema>(
+const adminSchema = new Schema<IAdmin>(
   {
     uuid: {
       type: Schema.Types.ObjectId,
@@ -98,6 +90,7 @@ const adminSchema = new Schema<IAdminSchema>(
     optimisticConcurrency: true,
   }
 );
+
 
 // ---------------
 // --- VIRTUAL ---
@@ -222,7 +215,7 @@ adminSchema.pre('save', async function (next:Function) {
 });
 
 
-export default mongoose.model("Admins", adminSchema);
+export default mongoose.model("admins", adminSchema);
 
 
 /***

@@ -6,7 +6,9 @@ let connection: Mongoose | null = null;
 export const connect = async () : Promise<Mongoose | undefined> => {
     if (connection) return connection;
     
-    connection = await mongoose.connect(config.db_connection);
+    connection = await mongoose.connect(config.db_connection, { autoIndex: config.environment === "development" });
+    mongoose.set("strictQuery", true);
+
     // const dbs = await mongoose.connection.listDatabases();
     // console.log("connected to db");
 

@@ -15,8 +15,8 @@
     "dev": "nodemon ./src/bin/www",
     "debug-dev": "DEBUG=ecommerce-api-express.test:* npm run dev",
     "lint": "eslint",
-    "seed": "node ./dist/bin/seed.js",
-    "dbreset": "node ./src/dist/bin/dbreset.js",
+    "seed": "npm run build && node ./dist/bin/seed.js",
+    "dbreset": "npm run build && node ./dist/bin/dbreset.js",
     "test": "tsc && tsc-alias && export NODE_OPTIONS=--enable-source-maps; jasmine --config=./test/support/jasmine.mjs",
     "build": "tsc && tsc-alias"
   },

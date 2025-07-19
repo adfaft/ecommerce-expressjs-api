@@ -10,7 +10,7 @@ router.get('/', PostController.find);
 router.post('/',PostController.create);
 
 /* GET posts/:id data. */
-router.get('/:id', PostController.findByIdValidation, PostController.findById);
+router.get('/:id', PostController.findById);
 
 /* PUT posts/ data. */
 router.put('/:id', PostController.updateById);

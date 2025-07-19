@@ -42,6 +42,6 @@ export const mediaShortSchema = new mongoose.Schema({
     repository: String,
 });
 
-export const Medias = mongoose.model("Medias", mediaSchema);
+export const Medias = mongoose.model("medias", mediaSchema);
 
 export default Medias;
