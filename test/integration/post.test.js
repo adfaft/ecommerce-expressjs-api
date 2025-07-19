@@ -172,31 +172,66 @@ describe("Posts => ", () => {
     });
 
     // delete by delete
-    xit("DELETE /:id   should response deleted post data", async () => {
-      const response = await request(app).get("/404");
-      expect(response.statusCode).toBe(404);
-      expect(response.text).toEqual(expect.stringContaining("Page not found."));
+    it("DELETE /:id   should response deleted post data", async () => {
+
+      const { model, sample } = await create_post({
+        slug: 'sample-post-deletebyid-' + randomBytes(8).toString('hex')
+      });
+
+      const response = await request(app).delete("/api/v1/posts/" + model._id.toHexString());
+
+      expect(response.statusCode).toBe(200);
+      expect(response.body._id).toEqual(model._id.toHexString());
+      expect(response.body.slug).toEqual(model.slug);
     });
 
     // delete : not exist 
-    xit("DELET /:id   should response post data error for not exist", async () => {
-      const response = await request(app).get("/404");
-      expect(response.statusCode).toBe(404);
-      expect(response.text).toEqual(expect.stringContaining("Page not found."));
+    it("DELETE /:id   should response post data error for not exist", async () => {
+      const { model, sample } = await create_post({
+        slug: 'sample-post-deletebyid-' + randomBytes(8).toString('hex')
+      });
+
+      const response = await request(app).delete("/api/v1/posts/" + model._id.toHexString());
+      const response_next = await request(app).delete("/api/v1/posts/" + model._id.toHexString());
+
+      expect(response.statusCode).toBe(200);
+      expect(response.body._id).toEqual(model._id.toHexString());
+      expect(response.body.slug).toEqual(model.slug);
+
+      expect(response_next.statusCode).toBe(402);
+      expect(response_next.body.message).toEqual("empty");
+
     });
 
     // delete by post
-    xit("POST /delete/:id   should response deleted post data", async () => {
-      const response = await request(app).get("/404");
-      expect(response.statusCode).toBe(404);
-      expect(response.text).toEqual(expect.stringContaining("Page not found."));
+    it("POST /delete/:id   should response deleted post data", async () => {
+      const { model, sample } = await create_post({
+        slug: 'sample-post-deletebyid-' + randomBytes(8).toString('hex')
+      });
+
+      const response = await request(app).delete("/api/v1/posts/" + model._id.toHexString());
+
+      expect(response.statusCode).toBe(200);
+      expect(response.body._id).toEqual(model._id.toHexString());
+      expect(response.body.slug).toEqual(model.slug);
     });
 
     // delete : not exist 
-    xit("POST /delete/:id   should response post data error for not exist", async () => {
-      const response = await request(app).get("/404");
-      expect(response.statusCode).toBe(404);
-      expect(response.text).toEqual(expect.stringContaining("Page not found."));
+    it("POST /delete/:id   should response post data error for not exist", async () => {
+      const { model, sample } = await create_post({
+        slug: 'sample-post-deletebyid-' + randomBytes(8).toString('hex')
+      });
+
+      const response = await request(app).delete("/api/v1/posts/" + model._id.toHexString());
+
+      const response_next = await request(app).delete("/api/v1/posts/" + model._id.toHexString());
+
+      expect(response.statusCode).toBe(200);
+      expect(response.body._id).toEqual(model._id.toHexString());
+      expect(response.body.slug).toEqual(model.slug);
+
+      expect(response_next.statusCode).toBe(402);
+      expect(response_next.body.message).toEqual("empty");
     });
 
 

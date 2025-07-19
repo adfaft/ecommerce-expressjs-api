@@ -41,28 +41,28 @@ export const find = asyncHandler(async function (req: Request, res: Response, ne
 
 });
 
-export const findById = asyncHandler(async function(req: Request, res: Response, next: NextFunction) {
+export const findById = asyncHandler(async function (req: Request, res: Response, next: NextFunction) {
 
     await beforeStartHook(req, res, next);
 
 
     const validate = findByIdValidation.safeParse(req.params);
-    if( ! validate.success ){
+    if (!validate.success) {
         throw new ErrorStatus(400, "validation error", z.flattenError(validate.error));
     }
 
     const data = await Model.findById(validate.data.id);
-    if( ! data ){
+    if (!data) {
         throw new ErrorStatus(402, "empty");
     }
 
     await beforeRenderHook(req, res, next);
 
-    res.json(data);
+    res.status(200).json(data);
 
 });
 
-export const create = asyncHandler(async function(req: Request, res: Response, next: NextFunction) {
+export const create = asyncHandler(async function (req: Request, res: Response, next: NextFunction) {
 
     await beforeStartHook(req, res, next);
 
@@ -80,20 +80,38 @@ export const create = asyncHandler(async function(req: Request, res: Response, n
 
     await beforeRenderHook(req, res, next);
 
-    res.json(result);
+    res.status(200).json(result);
 
 });
 
 
 
-export const updateById = asyncHandler(async function(req: Request, res: Response, next: NextFunction) {
-  await beforeRenderHook(req, res, next);
-  res.json({data : `respond with update: a ${Model.modelName} resource`});
+export const updateById = asyncHandler(async function (req: Request, res: Response, next: NextFunction) {
+    await beforeRenderHook(req, res, next);
+    res.json({ data: `respond with update: a ${Model.modelName} resource` });
 });
 
-export const deleteById = asyncHandler(async function(req: Request, res: Response, next: NextFunction) {
-  await beforeRenderHook(req, res, next);
-  res.json({data : `respond with delete (id: ${req.params.postId}): a ${Model.modelName} resource`});
+export const deleteById = asyncHandler(async function (req: Request, res: Response, next: NextFunction) {
+    await beforeRenderHook(req, res, next);
+
+    const validate = findByIdValidation.safeParse(req.params);
+    if (!validate.success) {
+        throw new ErrorStatus(400, "validation error", z.flattenError(validate.error));
+    }
+
+    const data = await Model.findById(validate.data.id);
+    if (!data) {
+        throw new ErrorStatus(402, "empty");
+    }
+
+    const result = await Model.deleteOne({ _id: validate.data.id });
+
+    if( ! result.deletedCount ){
+        throw new ErrorStatus(400, "failed to delete");
+    }
+
+    res.status(200).json(data);
+    
 });
 
 export default {
