@@ -23,7 +23,7 @@ export const findByIdValidation = z.object({
 // ]);
 
 
-export const ZPost = z.object({
+export const createValidation = z.object({
     title: z.string().max(150),
     slug: z.string().max(150),
     excerpt: z.string().optional(),
@@ -48,9 +48,12 @@ export const ZPost = z.object({
         breadcrumbsPath: z.array(z.string())
     })).optional(),
     tags: z.array(z.string()),
+    authorId: z.string().trim().refine(objectid.check, objectid.params ),
+    editorId: z.string().trim().refine(objectid.check, objectid.params ),
 });
 
 
 export default {
-    findByIdValidation
+    findByIdValidation,
+    createValidation
 }

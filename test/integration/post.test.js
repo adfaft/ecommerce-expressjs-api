@@ -92,8 +92,12 @@ describe("Posts => ", () => {
       slug: 'sample-post-list-' + randomBytes(8).toString('hex')
     });
 
+    console.log(post_response.body)
+
     const response = await request(app).get("/api/v1/posts");
     expect(response.statusCode).toBe(200);
+
+    console.log(response.body)
 
     const result = response.body.data.find((el) => el.slug === sample.slug);
 
@@ -103,7 +107,6 @@ describe("Posts => ", () => {
   });
 
   // find by id
-  // get
   it("GET /:id   should response post data", async () => {
 
     const { post_response, sample } = await create_post({

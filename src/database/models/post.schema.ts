@@ -1,4 +1,4 @@
-import mongoose, { Schema, Types } from "mongoose";
+import mongoose, { Schema, Types, Model, HydratedDocument } from "mongoose";
 import { randomUUID } from "crypto";
 
 export enum PostTypeEnum {
@@ -12,16 +12,17 @@ export enum PostStatusEnum {
     review = "review"
 }
 
+export interface ISeo{
+    title: string,
+    description: string,
+    keyword: string,
+    image: string,
+    urlCanonical: string,
+    urlRedirect: string,
+    urlRedirectStatus: number
+}
 
-export const postCategorySchema = new Schema({
-    name: { type: String, required: true, maxLength: 150 },
-    slug: { type: String, required: true, unique: true, maxLength: 150 },
-    parent: { type: mongoose.Types.ObjectId },
-    breadcrumbsId: { type: [String], },
-    breadcrumbsSlug: { type: [mongoose.Types.ObjectId], },
-});
-
-export const seoSchema = new mongoose.Schema({
+export const seoSchema = new mongoose.Schema<ISeo>({
     title: String,
     description: String,
     keyword: String,
@@ -31,8 +32,17 @@ export const seoSchema = new mongoose.Schema({
     urlRedirectStatus: Number
 });
 
-export const translationSchema = new mongoose.Schema({
-    postId: mongoose.Types.ObjectId,
+export interface ITranslation{
+    postId: Types.ObjectId,
+    type: string,
+    lang: string,
+    title: string,
+    slug: string,
+    url: string,
+}
+
+export const translationSchema = new mongoose.Schema<ITranslation>({
+    postId: Types.ObjectId,
     type: String,
     lang: String,
     title: String,
@@ -40,7 +50,27 @@ export const translationSchema = new mongoose.Schema({
     url: String,
 });
 
-export const postSchema = new mongoose.Schema({
+export interface IPost{
+    uuid: string,
+    title: string,
+    slug: string,
+    excerpt: string,
+    content: string,
+    type: string,
+    lang: string,
+    translation: ITranslation[],
+    status: string,
+    meta: {
+        seo: ISeo,
+        featuredImage: string,
+        featuredImageMobile: string,
+    },
+    tags: string[],
+    author?: Types.ObjectId,
+    editor?: Types.ObjectId
+}
+
+export const postSchema = new mongoose.Schema<IPost, Model<IPost>>({
     uuid: { type: String, default: () => randomUUID(), unique: true },
     title: { type: String, required: true, maxLength: 150 },
     slug: { type: String, required: true, maxLength: 150 },
@@ -48,7 +78,6 @@ export const postSchema = new mongoose.Schema({
     content: String,
     type: { type: String, required: true, enum: PostTypeEnum },
     lang: { type: String, required: true },
-    url: String,
     translation: [translationSchema],
     status: { type: String, required: true, enum: PostStatusEnum },
     meta: {
@@ -56,21 +85,9 @@ export const postSchema = new mongoose.Schema({
         featuredImage: String,
         featuredImageMobile: String,
     },
-    category: [{ 
-        categoryId: { type: Schema.Types.ObjectId, ref: 'post_categories' },
-        name: String,
-        slug: String,
-        breadcrumbsSlug: [String]
-     }],
     tags: [String],
-    author: { 
-        authorId: { type: Schema.Types.ObjectId, ref: 'admins' },
-        name: String,
-    },
-    editor: {
-        editorId: { type: Schema.Types.ObjectId, ref: 'admins'},
-        name: String
-    }
+    author: { type: Schema.Types.ObjectId, ref: 'admins' },
+    editor: { type: Schema.Types.ObjectId, ref: 'admins'}
 
 }, {
     timestamps: true
@@ -87,6 +104,11 @@ postSchema.index({ type: 1, lang: 1, slug: 1 }, { unique: true });
 // --- VIRTUAL ---
 // ---------------
 
+postSchema.virtual('post_categories', {
+    ref: 'post_categories',
+    localField:  '_id',
+    foreignField: 'postId',
+});
 
 
 // ---------------
@@ -104,8 +126,12 @@ postSchema.index({ type: 1, lang: 1, slug: 1 }, { unique: true });
 // --- HOOKS ---
 // ---------------
 
+type PostModel = Model<IPost>;
 
-export const PostCategories = mongoose.model("post_categories", postCategorySchema);
-export const Posts = mongoose.model("posts", postSchema);
+postSchema.pre(['find', 'findOne'], function(){
+    this.populate('post_categories');
+});
+
+export const Posts = mongoose.model<IPost, PostModel>("posts", postSchema);
 
 export default Posts;
