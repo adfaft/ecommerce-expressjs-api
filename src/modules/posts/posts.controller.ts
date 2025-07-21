@@ -3,7 +3,7 @@ import asyncHandler from '@app/utils/route_catch_async.js';
 import { ErrorStatus } from '@app/utils/error.js';
 import validation, { createValidation, findByIdValidation } from './posts.validation.js';
 
-import Model from '@model/post.schema.js';
+import Model, { refill } from '@model/post.schema.js';
 import PostCategories from '@model/post_category.schema.js';
 import z from 'zod';
 import MongoQuery from '@app/utils/mongodb_query.js';
@@ -66,21 +66,32 @@ export const create = asyncHandler(async function (req: Request, res: Response, 
 
     await beforeStartHook(req, res, next);
 
-    await Model.init();
-    await PostCategories.init();
+    // validate and insert data except relations
+    const validate = createValidation.safeParse(req.body);
+    if( ! validate.success ){
+        throw new ErrorStatus(400, "validation error", z.flattenError(validate.error));
+    }
 
-    const result = await Model.create(req.body);
+    // validate if exist
+    const exists = await Model.findOne({
+        slug: validate.data.slug,
+        type: validate.data.type,
+        lang: validate.data.lang
+    });
 
-    // const validate = createValidation.safeParse(req.body);
-    // if( ! validate.success ){
-    //     throw new ErrorStatus(400, "validation error", z.flattenError(validate.error));
-    // }
+    if( exists ){
+        throw new ErrorStatus(400, "already exist");
+    }
 
-    // const result = await Model.create(validate.data);
+    // create model
+    let result = await Model.create(validate.data);
+
+    // repopulate relation extra attributes
+    result = await refill(result);
 
     await beforeRenderHook(req, res, next);
 
-    res.status(200).json(result);
+    res.status(200).json(result.toJSON({ getters: true }));
 
 });
 
@@ -88,6 +99,28 @@ export const create = asyncHandler(async function (req: Request, res: Response, 
 
 export const updateById = asyncHandler(async function (req: Request, res: Response, next: NextFunction) {
     await beforeRenderHook(req, res, next);
+
+    const validate = findByIdValidation.safeParse(req.params);
+    if (!validate.success) {
+        throw new ErrorStatus(400, "validation error", z.flattenError(validate.error));
+    }
+
+    const data = await Model.findById(validate.data.id);
+    if (!data) {
+        throw new ErrorStatus(402, "empty");
+    }
+
+    // create model
+    const result = await Model.create(validate.data);
+
+    // repopulate
+
+    // relation editor
+
+    // relation categories
+
+    // relation translation
+
     res.json({ data: `respond with update: a ${Model.modelName} resource` });
 });
 

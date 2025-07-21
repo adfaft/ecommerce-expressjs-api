@@ -10,6 +10,7 @@ const SALT_WORK_FACTOR = 10,
 mongoose.set("strictQuery", true);
 
 export interface IAdmin {
+  _id: Schema.Types.ObjectId,
   uuid: Schema.Types.UUID,
   fullName: string,
   email: string,

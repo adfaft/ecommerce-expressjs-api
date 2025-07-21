@@ -1,9 +1,7 @@
-import { Request, Response, NextFunction } from 'express';
-import { checkSchema, param } from 'express-validator';
-import validate from '@app/utils/express_validation_validate.js';
 import mongoose, { isValidObjectId } from 'mongoose';
 import * as z from 'zod';
 import { objectid } from '@app/utils/zod_validation.js';
+import { PostStatusEnum, PostTypeEnum } from '@app/database/models/post.schema.js';
 
 
 export const findByIdValidation = z.object({
@@ -11,45 +9,33 @@ export const findByIdValidation = z.object({
 });
 
 
-// validate([
-//     param('id')
-//         .notEmpty()
-//         .custom((value, {req: Request}) => {
-//             if ( ! mongoose.Types.ObjectId.isValid(value) ){
-//                 throw new Error('Not a valid ObjectId');
-//             }
-//             return true;
-//         })
-// ]);
-
-
 export const createValidation = z.object({
-    title: z.string().max(150),
-    slug: z.string().max(150),
+    title: z.string().min(3).max(150),
+    slug: z.string().min(3).max(150).regex(/[A-Za-z0-9_\-]/),
     excerpt: z.string().optional(),
     content: z.string().optional(),
-    type: z.string(),
+    type: z.enum(Object.values(PostTypeEnum)),
     lang: z.string().max(2),
     translation: z.array(z.object({
-        postId: z.string(),
-        type: z.string(),
+        postId: z.string().trim().refine(objectid.check, objectid.params ),
         lang: z.string(),
-        title: z.string(),
-        slug: z.string(),
-        url: z.string()
     })).optional(),
-    status: z.string(),
-    meta: z.object().optional(),
-    category: z.array(z.object({
-        name: z.string(),
-        slug: z.string(),
-        parent: z.string(),
-        breadcrumb: z.array(z.string()),
-        breadcrumbsPath: z.array(z.string())
-    })).optional(),
-    tags: z.array(z.string()),
-    authorId: z.string().trim().refine(objectid.check, objectid.params ),
-    editorId: z.string().trim().refine(objectid.check, objectid.params ),
+    status: z.enum(Object.values(PostStatusEnum)),
+    meta: z.any().optional(),
+    categories: z.array(
+        z.object({
+            categoryId: z.string().trim().refine(objectid.check, objectid.params )
+        })
+    ).optional(),
+    tags: z.array(
+        z.string().regex(/[A-Za-z0-9]/)
+    ),
+    author: z.object({
+        authorId: z.string().trim().refine(objectid.check, objectid.params )
+    }),
+    editor: z.object({
+        editorId: z.string().trim().refine(objectid.check, objectid.params )
+    }),
 });
 
 

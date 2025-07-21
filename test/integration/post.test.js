@@ -1,16 +1,21 @@
 import request from "supertest";
 import app from "../../dist/app.js";
 import util from 'util';
-import { connect, disconnect, currentdb } from '../../dist/database/mongodb.js';
-import { getRandomValues, randomBytes } from "crypto";
+import { connect, currentdb } from '../../dist/database/mongodb.js';
+import { randomBytes } from "crypto";
 import { seed_default as admin_seed_default } from "../seed/admin.seed.js";
 import { post_new, seed_new as post_seed_new } from "../seed/post.seed.js";
-import PostModel from "../../dist/database/models/post.schema.js";
+import { seed_default as post_category_seed_default } from "../seed/post_category.seed.js";
+import { seed_default as post_seed_default } from "../seed/post.seed.js";
 import omit from "lodash/omit.js";
 
 util.inspect.defaultOptions.depth = 6;
 
 describe("Posts => ", () => {
+
+  beforeAll(async function(){
+    await resetdb();
+  });
 
   describe('EMPTY STATE', function () {
 
@@ -41,7 +46,13 @@ describe("Posts => ", () => {
     it("POST /, CREATE: should response post data", async () => {
 
       const sample = post_new({
-        slug: 'sample-post-create-' + randomBytes(8).toString('hex')
+        slug: 'sample-post-create-' + randomBytes(8).toString('hex'),
+        lang: 'en',
+        type: 'post',
+        translation: [{
+          lang: 'id',
+          postId:  '211111222222333333444442'
+        }],
       });
 
       // create
@@ -53,8 +64,15 @@ describe("Posts => ", () => {
       expect(post_response.statusCode).toBe(200);
       expect(post_response.body._id).toBeTruthy();
 
-      const sample_test = omit(sample, ["meta", "categories"]);
+      const sample_test = omit(sample, ["meta", "categories", "translation"]);
       expect(post_response.body).toEqual(jasmine.objectContaining(sample_test));
+      expect(post_response.body.meta.seo).toEqual(jasmine.objectContaining(sample.meta.seo)); 
+      expect(post_response.body?.categories?.map((x) => { 
+        return {categoryId: x.categoryId, slug: x.slug} 
+      })).toEqual(jasmine.objectContaining(sample.categories));
+      expect(post_response.body?.translation?.map((x) => { 
+        return {postId: x.postId, lang: x.lang} 
+      })).toEqual(jasmine.objectContaining(sample.translation));
 
     });
 
@@ -150,7 +168,7 @@ describe("Posts => ", () => {
     });
 
     // update by put
-    xit("PUT /   should response updated post data", async () => {
+    xit("PUT /:id   should response updated post data", async () => {
       const response = await request(app).get("/404");
       expect(response.statusCode).toBe(404);
       expect(response.text).toEqual(expect.stringContaining("Page not found."));
@@ -277,8 +295,10 @@ async function resetdb() {
     await db.dropCollection('post_categories');
 
     await admin_seed_default();
+    await post_category_seed_default();
+    await post_seed_default();
 
-    console.log(`clear admi, posts & posts_categories collection + admin seed`);
+    console.log(`clear admin, posts & posts_categories collection + admin seed`);
 
   } catch (err) {
     console.log(err)

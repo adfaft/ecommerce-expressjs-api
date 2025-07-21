@@ -19,17 +19,20 @@ export const admin_new = () => {
     };
 };
 
-export const admin_default = () => {
+export const data_sample = () => {
 
-    return {
-        _id: '111111222222333333444444',
-        fullName: "Adfaft Lucky",
-        email: "adfaft.lucky1@gmail.com",
-        phone: "+62857112223333",
-        password: "testingsaja",
-        status: "active",
-        role: ["admin", "author", "editor"]
-    };
+    return [
+        {
+            _id: '111111222222333333444444',
+            uuid: faker.string.uuid(),
+            fullName: "Adfaft Lucky",
+            email: "adfaft.lucky1@gmail.com",
+            phone: "+62857112223333",
+            password: "testingsaja",
+            status: "active",
+            role: ["admin", "author", "editor"]
+        }
+    ];
 };
 
 export const generate = (total) => {
@@ -44,12 +47,6 @@ export const generate = (total) => {
 
 };
 
-export const seed_default = async () => {
-    const sample = admin_default();
-    const model = await Model.create(sample);
-
-    return { model, sample };
-}
 
 export const seed_new = async (replacer = {}) => {
     const sample = admin_new(replacer);
@@ -61,7 +58,16 @@ export const seed_new = async (replacer = {}) => {
 export const seed_generate = async (total) => {
     const data = generate(total);
 
-    for(item in data){
+    for(const item of data){
         await Model.create(item);
     }
+}
+
+export const seed_default = async () => {
+    const sample = data_sample();
+
+    for(const item of sample ){
+        await Model.create(item);
+    }
+
 }
