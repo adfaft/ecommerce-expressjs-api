@@ -118,7 +118,13 @@ export const postSchema = new mongoose.Schema<IPost, Model<IPost>>({
     }
 
 }, {
-    timestamps: true
+    timestamps: true,
+    toJSON: {
+        getters: true,
+        transform(doc: IPost, ret: any){
+            delete ret.__v;
+        }
+    }
 });
 
 // ---------------

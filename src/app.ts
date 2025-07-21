@@ -68,7 +68,7 @@ app.use(function(
   // render the error page
   res.status(status);
 
-  console.log(err);
+  // console.log(err);
   
   res.json({ status, message, error });
 });

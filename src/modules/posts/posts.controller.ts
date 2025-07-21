@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import asyncHandler from '@app/utils/route_catch_async.js';
 import { ErrorStatus } from '@app/utils/error.js';
-import validation, { createValidation, findByIdValidation } from './posts.validation.js';
+import validation, { createValidation, findByIdValidation, updateValidation } from './posts.validation.js';
 
 import Model, { refill } from '@model/post.schema.js';
 import PostCategories from '@model/post_category.schema.js';
@@ -58,7 +58,7 @@ export const findById = asyncHandler(async function (req: Request, res: Response
 
     await beforeRenderHook(req, res, next);
 
-    res.status(200).json(data);
+    res.status(200).json(data.toJSON({ getters: true}));
 
 });
 
@@ -98,30 +98,38 @@ export const create = asyncHandler(async function (req: Request, res: Response, 
 
 
 export const updateById = asyncHandler(async function (req: Request, res: Response, next: NextFunction) {
-    await beforeRenderHook(req, res, next);
 
-    const validate = findByIdValidation.safeParse(req.params);
-    if (!validate.success) {
+    await beforeStartHook(req, res, next);
+
+    const validateId = findByIdValidation.safeParse(req.params);
+    if (!validateId.success) {
+        throw new ErrorStatus(400, "validation error", z.flattenError(validateId.error));
+    }
+
+    // validate and insert data except relations
+    const validate = updateValidation.safeParse(req.body);
+    if( ! validate.success ){
         throw new ErrorStatus(400, "validation error", z.flattenError(validate.error));
     }
 
-    const data = await Model.findById(validate.data.id);
-    if (!data) {
+    // get model
+    const model = await Model.findById(validateId.data.id);
+    if (!model) {
         throw new ErrorStatus(402, "empty");
     }
 
-    // create model
-    const result = await Model.create(validate.data);
+    // update
+    for( const i in validate.data){
+        model.set(i, validate.data[i as keyof typeof validate.data]);
+    }
+    await model.save();
 
     // repopulate
+    const result = await refill(model);
 
-    // relation editor
+    await beforeRenderHook(req, res, next);
 
-    // relation categories
-
-    // relation translation
-
-    res.json({ data: `respond with update: a ${Model.modelName} resource` });
+    res.status(200).json(result.toJSON({ getters: true }));
 });
 
 export const deleteById = asyncHandler(async function (req: Request, res: Response, next: NextFunction) {
@@ -143,7 +151,7 @@ export const deleteById = asyncHandler(async function (req: Request, res: Respon
         throw new ErrorStatus(400, "failed to delete");
     }
 
-    res.status(200).json(data);
+    res.status(200).json(data.toJSON({ getters: true}));
     
 });
 

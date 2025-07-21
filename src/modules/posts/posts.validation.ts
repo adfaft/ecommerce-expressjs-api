@@ -38,6 +38,35 @@ export const createValidation = z.object({
     }),
 });
 
+export const updateValidation = z.object({
+    title: z.string().min(3).max(150).optional(),
+    slug: z.string().min(3).max(150).regex(/[A-Za-z0-9_\-]/).optional(),
+    excerpt: z.string().optional().optional(),
+    content: z.string().optional().optional(),
+    type: z.enum(Object.values(PostTypeEnum)).optional(),
+    lang: z.string().max(2).optional(),
+    translation: z.array(z.object({
+        postId: z.string().trim().refine(objectid.check, objectid.params ),
+        lang: z.string(),
+    })).optional(),
+    status: z.enum(Object.values(PostStatusEnum)).optional(),
+    meta: z.any().optional(),
+    categories: z.array(
+        z.object({
+            categoryId: z.string().trim().refine(objectid.check, objectid.params )
+        })
+    ).optional(),
+    tags: z.array(
+        z.string().regex(/[A-Za-z0-9]/)
+    ),
+    author: z.object({
+        authorId: z.string().trim().refine(objectid.check, objectid.params )
+    }).optional(),
+    editor: z.object({
+        editorId: z.string().trim().refine(objectid.check, objectid.params )
+    }).optional(),
+});
+
 
 export default {
     findByIdValidation,

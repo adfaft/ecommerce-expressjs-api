@@ -8,13 +8,15 @@ import { post_new, seed_new as post_seed_new } from "../seed/post.seed.js";
 import { seed_default as post_category_seed_default } from "../seed/post_category.seed.js";
 import { seed_default as post_seed_default } from "../seed/post.seed.js";
 import omit from "lodash/omit.js";
+import { response } from "express";
 
 util.inspect.defaultOptions.depth = 6;
 
 describe("Posts => ", () => {
 
-  beforeAll(async function(){
+  beforeAll(async function () {
     await resetdb();
+    await seeddb();
   });
 
   describe('EMPTY STATE', function () {
@@ -27,6 +29,8 @@ describe("Posts => ", () => {
       const response = await request(app).get("/api/v1/posts");
       expect(response.statusCode).toBe(200);
       expect(response.body).toEqual({ data: [] });
+
+      await seeddb();
     });
 
     // get empty
@@ -41,7 +45,7 @@ describe("Posts => ", () => {
   });
 
 
-  describe('CRUD STATE', function () {
+  describe('CRUD STATE => ', function () {
 
     it("POST /, CREATE: should response post data", async () => {
 
@@ -51,7 +55,7 @@ describe("Posts => ", () => {
         type: 'post',
         translation: [{
           lang: 'id',
-          postId:  '211111222222333333444442'
+          postId: '211111222222333333444442'
         }],
       });
 
@@ -62,25 +66,65 @@ describe("Posts => ", () => {
         .send(sample);
 
       expect(post_response.statusCode).toBe(200);
-      expect(post_response.body._id).toBeTruthy();
+      expect(post_response.body.id).toBeTruthy();
 
       const sample_test = omit(sample, ["meta", "categories", "translation"]);
       expect(post_response.body).toEqual(jasmine.objectContaining(sample_test));
-      expect(post_response.body.meta.seo).toEqual(jasmine.objectContaining(sample.meta.seo)); 
-      expect(post_response.body?.categories?.map((x) => { 
-        return {categoryId: x.categoryId, slug: x.slug} 
+      expect(post_response.body.meta.seo).toEqual(jasmine.objectContaining(sample.meta.seo));
+      expect(post_response.body?.categories?.map((x) => {
+        return { categoryId: x.categoryId, slug: x.slug }
       })).toEqual(jasmine.objectContaining(sample.categories));
-      expect(post_response.body?.translation?.map((x) => { 
-        return {postId: x.postId, lang: x.lang} 
+      expect(post_response.body?.translation?.map((x) => {
+        return { postId: x.postId, lang: x.lang }
       })).toEqual(jasmine.objectContaining(sample.translation));
 
     });
 
     // create : validation error
-    xit("POST /   should response post data with validation error", async () => {
-      const response = await request(app).get("/404");
-      expect(response.statusCode).toBe(404);
-      expect(response.text).toEqual(expect.stringContaining("Page not found."));
+    it("POST /   should response post data with validation error", async () => {
+
+      const sample = post_new({
+        title: 'a',
+        slug: null,
+        lang: '',
+        type: '',
+      });
+
+      delete sample.status;
+
+      // create
+      const response = await request(app).post("/api/v1/posts")
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .send(sample);
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body.error?.fieldErrors?.title?.length).toBeGreaterThan(0);
+      expect(response.body.error?.fieldErrors?.slug?.length).toBeGreaterThan(0);
+      expect(response.body.error?.fieldErrors?.type?.length).toBeGreaterThan(0);
+      expect(response.body.error?.fieldErrors?.status?.length).toBeGreaterThan(0);
+
+    });
+
+
+    // create : validation error : duplicate
+    it("POST /   should response post data with validation error (duplicates)", async () => {
+
+      const sample = post_new({
+        type: 'page',
+        slug: 'home',
+        lang: 'en'
+      });
+
+      // create
+      const response = await request(app).post("/api/v1/posts")
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .send(sample);
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body.message).toEqual("already exist");
+
     });
 
 
@@ -183,10 +227,48 @@ describe("Posts => ", () => {
 
 
     // update : validation error
-    xit("POST /update/:id   should response updated post data with validation error", async () => {
-      const response = await request(app).get("/404");
-      expect(response.statusCode).toBe(404);
-      expect(response.text).toEqual(expect.stringContaining("Page not found."));
+    it("PUT /:id   should response updated post data with validation error", async () => {
+      const sample = post_new({
+        title: 'a',
+        lang: null,
+        type: '',
+      });
+
+      delete sample.status;
+      delete sample.slug;
+
+      // create
+      const response = await request(app).put("/api/v1/posts/111111222222333333444442")
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .send(sample);
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body.error?.fieldErrors?.title?.length).toBeGreaterThan(0);
+      expect(response.body.error?.fieldErrors?.type?.length).toBeGreaterThan(0);
+      expect(response.body.error?.fieldErrors?.lang?.length).toBeGreaterThan(0);
+    });
+
+    it("POST /update/:id   should response updated post data with validation error", async () => {
+      const sample = post_new({
+        title: 'a',
+        lang: null,
+        type: '',
+      });
+
+      delete sample.status;
+      delete sample.slug;
+
+      // create
+      const response = await request(app).post("/api/v1/posts/update/111111222222333333444442")
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .send(sample);
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body.error?.fieldErrors?.title?.length).toBeGreaterThan(0);
+      expect(response.body.error?.fieldErrors?.type?.length).toBeGreaterThan(0);
+      expect(response.body.error?.fieldErrors?.lang?.length).toBeGreaterThan(0);
     });
 
     // delete by delete
@@ -274,7 +356,7 @@ describe("Posts => ", () => {
 });
 
 async function create_post(replacer = {}) {
-  
+
   const { model, sample } = await post_seed_new(replacer);
   return { model, sample };
 }
@@ -294,14 +376,20 @@ async function resetdb() {
     await db.dropCollection('posts');
     await db.dropCollection('post_categories');
 
-    await admin_seed_default();
-    await post_category_seed_default();
-    await post_seed_default();
+
 
     console.log(`clear admin, posts & posts_categories collection + admin seed`);
 
   } catch (err) {
     console.log(err)
   }
+
+}
+
+async function seeddb() {
+
+  await admin_seed_default();
+  await post_category_seed_default();
+  await post_seed_default();
 
 }
