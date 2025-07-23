@@ -28,7 +28,7 @@ app.set('view engine', 'twig');
 
 
 // middleware
-app.use(logger('dev'));
+app.use(logger('dev')); // show log such as from supertest
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(ExpressMongoSanitize())

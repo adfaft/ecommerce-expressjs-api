@@ -146,7 +146,11 @@ export const updateById = asyncHandler(async function (req: Request, res: Respon
 
     // update
     for( const i in validate.data){
-        model.set(i, validate.data[i as keyof typeof validate.data]);
+        const value = validate.data[i as keyof typeof validate.data];
+        if( typeof value !== "undefined" ){
+            model.set(i, value);
+        }
+        
     }
     await model.save();
 

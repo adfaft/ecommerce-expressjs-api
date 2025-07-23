@@ -212,17 +212,39 @@ describe("Posts => ", () => {
     });
 
     // update by put
-    xit("PUT /:id   should response updated post data", async () => {
-      const response = await request(app).get("/404");
-      expect(response.statusCode).toBe(404);
-      expect(response.text).toEqual(expect.stringContaining("Page not found."));
+    it("PUT /:id   should response updated post data", async () => {
+      const sample = post_new({
+        title: 'Sample Post update',
+        slug: 'sample-post-update',
+      });
+
+      // create
+      const response = await request(app).put("/api/v1/posts/111111222222333333444442")
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .send(sample);
+
+      expect(response.statusCode).toBe(200);
+      expect(response.body.title).toEqual(sample.title);
+      expect(response.body.slug).toEqual(sample.slug);
     });
 
     // update by post
-    xit("POST /update/:id   should response updated post data", async () => {
-      const response = await request(app).get("/404");
-      expect(response.statusCode).toBe(404);
-      expect(response.text).toEqual(expect.stringContaining("Page not found."));
+    it("POST /update/:id   should response updated post data", async () => {
+      const sample = post_new({
+        title: 'Sample Post update second',
+        slug: 'sample-post-update-second',
+      });
+
+      // create
+      const response = await request(app).post("/api/v1/posts/update/111111222222333333444442")
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .send(sample);
+
+      expect(response.statusCode).toBe(200);
+      expect(response.body.title).toEqual(sample.title);
+      expect(response.body.slug).toEqual(sample.slug);
     });
 
 
@@ -365,7 +387,7 @@ describe("Posts => ", () => {
 
 
     // list : pagination
-    fit("GET /      should response post list search", async () => {
+    it("GET /      should response post list search", async () => {
 
       const response = await request(app).get("/api/v1/posts").query({
         where: {

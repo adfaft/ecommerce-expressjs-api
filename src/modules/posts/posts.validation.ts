@@ -39,6 +39,8 @@ export const createValidation = z.object({
     }),
 });
 
+// @todo pisahkan sanitize dalam pipeline terpisah agar bisa menjadi JSON Schema
+
 // @todo unit test apakah bisa menerima optional, default kalau ada
 export const findQueryValidation = z.object({
     page: z.preprocess((x) => x ? x : undefined, z.coerce.number().gt(0).optional().default(1)), 
@@ -49,35 +51,7 @@ export const findQueryValidation = z.object({
 });
 
 
-export const updateValidation = z.object({
-    title: z.string().min(3).max(150).optional(),
-    slug: z.string().min(3).max(150).regex(REGEX_SLUG).optional(),
-    excerpt: z.string().optional().optional(),
-    content: z.string().optional().optional(),
-    type: z.enum(Object.values(PostTypeEnum)).optional(),
-    lang: z.string().max(2).optional(),
-    translation: z.array(z.object({
-        postId: z.string().trim().regex(REGEX_OBJECTID, objectid_refine.params),
-        lang: z.string(),
-    })).optional(),
-    status: z.enum(Object.values(PostStatusEnum)).optional(),
-    meta: z.any().optional(),
-    categories: z.array(
-        z.object({
-            categoryId: z.string().trim().regex(REGEX_OBJECTID, objectid_refine.params)
-        })
-    ).optional(),
-    tags: z.array(
-        z.string().regex(/[A-Za-z0-9]/)
-    ),
-    author: z.object({
-        authorId: z.string().trim().regex(REGEX_OBJECTID, objectid_refine.params)
-    }).optional(),
-    editor: z.object({
-        editorId: z.string().trim().regex(REGEX_OBJECTID, objectid_refine.params)
-    }).optional(),
-});
-
+export const updateValidation = createValidation.partial();
 
 
 export default {
