@@ -156,6 +156,14 @@ postSchema.index({ type: 1, lang: 1, slug: 1 }, { unique: true });
 // ---------------
 
 
+type PostModel = Model<IPost>;
+
+const Posts = mongoose.model<IPost, PostModel>("posts", postSchema);
+
+export default Posts;
+
+
+
 // ---------------
 // --- HELPERS ---
 // ---------------
@@ -239,8 +247,21 @@ export const refill = async function(data: HydratedDocument<IPost>) : Promise<Hy
 };
 
 
-type PostModel = Model<IPost>;
+export const querySearch = (search: string) => {
+    return {
+        $or: [
+            { title: { $regex: search, $options: "i" } },
+            { excerpt: { $regex: search, $options: "i" } }
+        ]
+    }
+}
 
-const Posts = mongoose.model<IPost, PostModel>("posts", postSchema);
+export const allowableWhereFields = [
+    "uuid", "title", "slug", "type", "lang", "status",
+    "translation", "translation.lang",
+]
 
-export default Posts;
+export const allowableWhereInFields = [
+    "categories.slug",
+    "tags"
+]

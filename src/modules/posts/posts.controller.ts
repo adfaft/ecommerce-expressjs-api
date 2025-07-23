@@ -1,12 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import asyncHandler from '@app/utils/route_catch_async.js';
 import { ErrorStatus } from '@app/utils/error.js';
-import validation, { createValidation, findByIdValidation, updateValidation } from './posts.validation.js';
+import validation, { createValidation, findByIdValidation, findQueryValidation, updateValidation } from './posts.validation.js';
 
-import Model, { refill } from '@model/post.schema.js';
-import PostCategories from '@model/post_category.schema.js';
+import Model, { IPost, querySearch, refill } from '@model/post.schema.js';
 import z from 'zod';
-import MongoQuery from '@app/utils/mongodb_query.js';
+import MongoPaginateHelper from '@app/utils/mongodb_query.js';
 
 
 // middleware that is specific to this router
@@ -29,15 +28,42 @@ export const beforeRenderHook = async (req: Request, res: Response, next: NextFu
 export const find = asyncHandler(async function (req: Request, res: Response, next: NextFunction) {
     await beforeStartHook(req, res, next);
 
-    const query = new MongoQuery(Model.find())
-        .pagination(1, 10)
-        .getQuery();
+    const validate = findQueryValidation.safeParse(req.query);
+    if (!validate.success) {
+        throw new ErrorStatus(400, "validation error", z.flattenError(validate.error));
+    }
 
-    const alldata = await query;
+    const paginate = new MongoPaginateHelper(Model)
+        .pagination(validate.data.page, validate.data.limit);
+
+    // search
+    if( validate.data.search ){
+        paginate.getQuery().where(querySearch(validate.data.search));
+    }
+
+    // where
+    if( validate.data.where ){
+        paginate.where(validate.data.where);
+        
+    }
+    
+     // where
+    if( validate.data.whereIn ){
+        paginate.where(validate.data.whereIn);
+        
+    }
+
+    // result
+    const alldata = await paginate.getQuery();
+    const count = await paginate.getQueryCount();
 
     await beforeRenderHook(req, res, next);
 
-    res.status(200).json({ data: alldata });
+    res.status(200).json({ data: alldata, pagination: {
+        page: validate.data.page,
+        limit: validate.data.limit,
+        count: count,
+    } });
 
 });
 

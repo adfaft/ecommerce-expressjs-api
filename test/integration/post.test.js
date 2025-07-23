@@ -6,9 +6,9 @@ import { randomBytes } from "crypto";
 import { seed_default as admin_seed_default } from "../seed/admin.seed.js";
 import { post_new, seed_new as post_seed_new } from "../seed/post.seed.js";
 import { seed_default as post_category_seed_default } from "../seed/post_category.seed.js";
-import { seed_default as post_seed_default } from "../seed/post.seed.js";
-import omit from "lodash/omit.js";
-import { response } from "express";
+import { seed_default as post_seed_default, seed_generate as post_seed_generate } from "../seed/post.seed.js";
+import { omit, last } from "lodash-es";
+import { PostStatusEnum } from "../../dist/database/models/post.schema.js";
 
 util.inspect.defaultOptions.depth = 6;
 
@@ -28,7 +28,7 @@ describe("Posts => ", () => {
 
       const response = await request(app).get("/api/v1/posts");
       expect(response.statusCode).toBe(200);
-      expect(response.body).toEqual({ data: [] });
+      expect(response.body.data).toEqual([]);
 
       await seeddb();
     });
@@ -338,14 +338,49 @@ describe("Posts => ", () => {
   });
 
 
-  describe('PAGINATION STATE', function () {
+  describe('PAGINATION STATE => ', function () {
+
+    beforeAll(async function(){
+      await post_seed_generate(15);
+    })
 
 
     // list : pagination
-    xit("GET /      should response post list with pagination", async () => {
-      const response = await request(app).get("/");
+    it("GET /      should response post list with pagination for first page", async () => {
+
+      const response = await request(app).get("/api/v1/posts");
       expect(response.statusCode).toBe(200);
-      expect(response.text).toEqual(expect.stringContaining("No direct access is allowed."));
+      expect(response.body.data.length).toEqual(10);
+
+      const response2 = await request(app).get("/api/v1/posts").query({
+        page: 2,
+        limit: 5
+      });
+
+      expect(response2.statusCode).toBe(200);
+      expect(response2.body.data.length).toEqual(5);
+
+      expect(last(response.body.data)?._id).toEqual(last(response.body.data)?._id);
+    });
+
+
+    // list : pagination
+    fit("GET /      should response post list search", async () => {
+
+      const response = await request(app).get("/api/v1/posts").query({
+        where: {
+          status: PostStatusEnum.publish,
+          lang: 'en' 
+        }
+      });
+      
+      expect(response.statusCode).toBe(200);
+
+      response.body.data.forEach(item => {
+          expect(item.status).toEqual(PostStatusEnum.publish);
+          expect(item.lang).toEqual("en");
+      });
+      
     });
 
 

@@ -35,3 +35,5 @@
 
 Question
 - Jasmine, bagaimana caranya membuat sequential test, dimana hasil dari sebuah state bisa dikirimkan ke next test?
+- validator.js, digunakan untuk escaping tapi tidak support tree-shaking untuk javascript
+  - https://janejeon.dev/using-type-definition-files-in-a-typescript-package/

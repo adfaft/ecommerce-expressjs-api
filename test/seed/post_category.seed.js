@@ -1,5 +1,5 @@
 import { faker } from "@faker-js/faker";
-import kebabCase from "lodash/kebabCase.js";
+import { kebabCase } from "lodash-es";
 import Model, { refill } from "../../dist/database/models/post_category.schema.js"
 
 export const post_new = (replacer = {}) => {

@@ -1,5 +1,5 @@
 import { faker } from "@faker-js/faker";
-import kebabCase from "lodash/kebabCase.js";
+import { kebabCase } from "lodash-es";
 import Model, { PostStatusEnum, PostTypeEnum } from "../../dist/database/models/post.schema.js"
 
 export const post_new = (replacer = {}) => {
@@ -65,7 +65,7 @@ export const seed_new = async (replacer = {}) => {
 export const seed_generate = async (total) => {
     const data = generate(total);
 
-    for(item of data){
+    for(const item of data){
         await Model.create(item);
     }
 }
