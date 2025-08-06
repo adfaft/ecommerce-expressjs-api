@@ -22,7 +22,7 @@
   - [x] product schema
   - [x] order schema
   - [x] media schema
-  - [ ] tdd post
+  - [x] tdd post
   - [ ] tdd authentication
       [ ] User Model password hash via zod validator
     - [ ] User Model testing via mocha / jade
@@ -31,6 +31,8 @@
   
 - [ ] Authentication
 - [ ] Model Query, Validation and Pagination
+- [-] OpenAPI Spec via TSOA or Typescrypt Rest Swagger
+  - tidak jadi, karena TSOA tidak indenpenden. Dia generate routes sendiri, sehingga routing tidak customisable. Mending ganti ke NESTJS
 
 
 Question

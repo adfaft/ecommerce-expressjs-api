@@ -1,4 +1,4 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Model, Schema } from "mongoose";
 import { randomUUID } from "crypto";
 import bcrypt from "bcrypt";
 
@@ -7,7 +7,24 @@ const SALT_WORK_FACTOR = 10,
   LOCK_TIME = 2 * 60 * 60 * 1000;
 
 
-mongoose.set("strictQuery", true);
+export enum FailedLoginReasonEnum {
+  NOT_FOUND = 0,
+  PASSWORD_INCORRECT = 1,
+  MAX_ATTEMPTS = 2
+};
+
+export enum AdminStatusEnum {
+  active = "active",
+  inactive = "inactive"
+}
+
+export enum AdminRoleEnum {
+  admin = "admin",
+  author = "author",
+  editor = "editor",
+  guest = "guest"
+}
+
 
 export interface IAdmin {
   _id: Schema.Types.ObjectId,
@@ -20,7 +37,7 @@ export interface IAdmin {
     changedAt: Date,
     history: Array<string>
   },
-  login: {
+  login?: {
     loginAt: Date,
     lastAttemptAt: Date,
     loginAttempts: number,
@@ -30,55 +47,29 @@ export interface IAdmin {
   role: Array<string>
 }
 
-export enum FailedLoginReasonEnum {
-  NOT_FOUND = 0,
-  PASSWORD_INCORRECT = 1,
-  MAX_ATTEMPTS = 2
-};
-
-export enum AdminStatusEnum{
-  active = "active",
-  inactive = "inactive"
-}
-
-export enum AdminRoleEnum{
-  admin = "admin",
-  author = "author",
-  editor = "editor",
-  guest = "guest"
+interface AdminModel extends Model<IAdmin>{
+  isLoginLocked() : boolean
+  incLoginAttempts() : Promise<IAdmin>
+  isValidPassword() : Promise<boolean>
 }
 
 
 const adminSchema = new Schema<IAdmin>(
   {
     uuid: { type: Schema.Types.UUID, default: randomUUID(), unique: true, },
-    fullName: {
-      type: String,
-      required: [true, "Please provide full name"],
-      trim: true,
-    },
-    email: {
-      type: String,
-      required: [true, "Please provide an email"],
-      index: { unique: true },
-      trim: true,
-    },
-    phone: { type: String, trim: true, index: true, },
-    password: {
-      type: String,
-      select: false,
-      required: [true, "Please provide a password"],
-      minlength: [8, "at least 8 characters"]
-    },
+    fullName: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    phone: { type: String, index: true, },
+    password: { type: String, select: false, required: true, minlength: 8 },
     passwordChanged: {
-      changedAt: { type: Date },
-      history: { type: [String] }
+      changedAt: Date,
+      history: { type: [String], select: false }
     },
     login: {
-      loginAt: { type: Date },
-      lastAttemptAt:{ type: Date }, 
-      loginAttempts: { type: Number, required: true, default: 0 },
-      lockUntil: { type: Number }
+      loginAt: Date,
+      lastAttemptAt: Date,
+      loginAttempts: { type: Number, default: 0 },
+      lockUntil: Number
     },
     status: { type: String, enum: AdminStatusEnum, },
     role: { type: [String], enum: AdminRoleEnum, }
@@ -86,18 +77,25 @@ const adminSchema = new Schema<IAdmin>(
   {
     timestamps: true,
     optimisticConcurrency: true,
+    toJSON: {
+      getters: true,
+      transform(doc: IAdmin, ret: any) {
+        delete ret.__v;
+      }
+    }
   }
 );
+
+// ---------------
+// --- INDEX ---
+// ---------------
+
 
 
 // ---------------
 // --- VIRTUAL ---
 // ---------------
 
-adminSchema.virtual('isLoginLocked').get(function () {
-  // check for a future lockUntil timestamp
-  return !!(this.login.lockUntil && this.login.lockUntil > Date.now());
-});
 
 
 
@@ -105,7 +103,12 @@ adminSchema.virtual('isLoginLocked').get(function () {
 // --- METHODS ---
 // ---------------
 
-adminSchema.methods.incLoginAttempts = function (cb:Function) {
+adminSchema.methods.isLoginLocked = function () {
+  // check for a future lockUntil timestamp
+  return !!(this.login && this.login.lockUntil && this.login.lockUntil > Date.now());
+};
+
+adminSchema.methods.incLoginAttempts = function (cb: Function) {
   // if we have a previous lock that has expired, restart at 1
   if (this.login.lockUntil && this.login.lockUntil < Date.now()) {
     return this.update({
@@ -115,14 +118,14 @@ adminSchema.methods.incLoginAttempts = function (cb:Function) {
         }
       },
       $unset: {
-        login: { 
-          lockUntil: 1 
+        login: {
+          lockUntil: 1
         }
       }
     }, cb);
   }
   // otherwise we're incrementing
-  var updates:any = { $inc: { login: { loginAttempts: 1 } } };
+  var updates: any = { $inc: { login: { loginAttempts: 1 } } };
   // lock the account if we've reached max attempts and it's not locked already
   if (this.login.loginAttempts + 1 >= MAX_LOGIN_ATTEMPTS && !this.login.isLocked) {
     updates.$set = { login: { lockUntil: Date.now() + LOCK_TIME } };
@@ -130,7 +133,7 @@ adminSchema.methods.incLoginAttempts = function (cb:Function) {
   return this.update(updates, cb);
 };
 
-adminSchema.methods.isValidPassword = async function (password:string) {
+adminSchema.methods.isValidPassword = async function (password: string) : Promise<boolean> {
   try {
     // Compare provided password with stored hash
     return await bcrypt.compare(password, this.password);
@@ -140,12 +143,20 @@ adminSchema.methods.isValidPassword = async function (password:string) {
 };
 
 
+adminSchema.methods.comparePassword = function(candidatePassword: string, cb: Function) {
+    bcrypt.compare(candidatePassword, this.password, function(err, isMatch) {
+        if (err) return cb(err);
+        cb(null, isMatch);
+    });
+};
+
+
 // ---------------
 // --- STATICS ---
 // ---------------
 
-adminSchema.statics.getAuthenticated = function (username:string, password:string, cb:Function) {
-  this.findOne({ username: username }, function (err:any, user:any) {
+adminSchema.statics.getAuthenticated = function (email: string, password: string, cb: Function) {
+  this.findOne({ email: email }, function (err: any, user: any) {
     if (err) return cb(err);
 
     // make sure the user exists
@@ -154,16 +165,16 @@ adminSchema.statics.getAuthenticated = function (username:string, password:strin
     }
 
     // check if the account is currently locked
-    if (user.login.isLocked) {
+    if (user.isLoginLocked()) {
       // just increment login attempts if account is already locked
-      return user.incLoginAttempts(function (err:any) {
+      return user.incLoginAttempts(function (err: any) {
         if (err) return cb(err);
         return cb(null, null, FailedLoginReasonEnum.MAX_ATTEMPTS);
       });
     }
 
     // test for a matching password
-    user.comparePassword(password, function (err:any, isMatch:boolean) {
+    user.comparePassword(password, function (err: any, isMatch: boolean) {
       if (err) return cb(err);
 
       // check if the password was a match
@@ -175,14 +186,14 @@ adminSchema.statics.getAuthenticated = function (username:string, password:strin
           $set: { login: { loginAttempts: 0 } },
           $unset: { login: { lockUntil: 1 } }
         };
-        return user.update(updates, function (err:any) {
+        return user.update(updates, function (err: any) {
           if (err) return cb(err);
           return cb(null, user);
         });
       }
 
       // password is incorrect, so increment login attempts before responding
-      user.incLoginAttempts(function (err:any) {
+      user.incLoginAttempts(function (err: any) {
         if (err) return cb(err);
         return cb(null, null, FailedLoginReasonEnum.PASSWORD_INCORRECT);
       });
@@ -197,7 +208,7 @@ adminSchema.statics.getAuthenticated = function (username:string, password:strin
 // --- HOOKS ---
 // ---------------
 
-adminSchema.pre('save', async function (next:Function) {
+adminSchema.pre('save', async function (next) {
   try {
     // Check if the password has been modified
     if (!this.isModified('password')) return next();
@@ -208,12 +219,40 @@ adminSchema.pre('save', async function (next:Function) {
 
     next(); // Proceed to save
   } catch (error) {
-    next(error); // Pass any errors to the next middleware
+    if (error instanceof Error){
+      next(error); // Pass any errors to the next middleware
+    }
+    
   }
 });
 
+// ---------------
+// --- MODEL ---
+// ---------------
 
-export default mongoose.model("admins", adminSchema);
+export const Admins = mongoose.model<IAdmin, AdminModel>("admins", adminSchema);
+export default Admins;
+
+
+// -----------------
+// --- API QUERY ---
+// -----------------
+export const querySearch = (search: string) => {
+    return {
+        $or: [
+            { fullName: { $regex: search, $options: "i" } },
+        ]
+    }
+}
+
+export const allowableWhereFields = [
+    "fullName", "status",
+]
+
+export const allowableWhereInFields = [
+    "roles",
+]
+
 
 
 /***

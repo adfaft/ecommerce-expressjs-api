@@ -1,12 +1,11 @@
-import { Request, Response, NextFunction } from 'express';
-import asyncHandler from '@app/utils/route_catch_async.js';
-import { ErrorStatus } from '@app/utils/error.js';
-import validation, { createValidation, findByIdValidation, findQueryValidation, updateValidation } from './posts.validation.js';
+import MongoPaginateHelper from "@app/utils/mongodb_query.js";
+import asyncHandler from "@app/utils/route_catch_async.js";
+import { NextFunction, Request, Response } from "express";
 
-import Model, { IPost, querySearch, refill } from '@app/database/models/posts.schema.js';
-import z from 'zod';
-import MongoPaginateHelper from '@app/utils/mongodb_query.js';
-
+import Model, { querySearch, refill } from '@app/database/models/product_categories.schema.js';
+import validation, { createValidation, findByIdValidation, findQueryValidation, updateValidation } from "./product_categories.validation.js";
+import { ErrorStatus } from "@app/utils/error.js";
+import z from "zod";
 
 // middleware that is specific to this router
 let time: number = 0;
@@ -25,7 +24,8 @@ export const beforeRenderHook = async (req: Request, res: Response, next: NextFu
     })
 };
 
-export const find = asyncHandler(async function (req: Request, res: Response, next: NextFunction) {
+
+export const find = asyncHandler(async function(req: Request, res: Response, next: NextFunction){
     await beforeStartHook(req, res, next);
 
     const validate = findQueryValidation.safeParse(req.query);
@@ -68,8 +68,8 @@ export const find = asyncHandler(async function (req: Request, res: Response, ne
         limit: validate.data.limit,
         count: count,
     } });
-
 });
+
 
 export const findById = asyncHandler(async function (req: Request, res: Response, next: NextFunction) {
 
@@ -105,7 +105,6 @@ export const create = asyncHandler(async function (req: Request, res: Response, 
     // validate if exist
     const exists = await Model.findOne({
         slug: validate.data.slug,
-        type: validate.data.type,
         lang: validate.data.lang
     });
 
@@ -197,4 +196,3 @@ export default {
     deleteById,
     ...validation
 }
-

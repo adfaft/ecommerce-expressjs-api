@@ -1,7 +1,6 @@
 import { faker } from "@faker-js/faker";
-import mongoose from 'mongoose';
 import util from 'util';
-import AdminModel from '../database/models/admin.schema.js';
+import AdminModel from '../database/models/admins.schema.js';
 import { connect, currentdb, disconnect } from '../database/mongodb.js';
 
 // agar log bisa menampilkan max:4 deepobject

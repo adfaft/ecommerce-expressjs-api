@@ -1,6 +1,5 @@
 import util from 'util';
 import { connect, currentdb, disconnect } from '@app/database/mongodb.js';
-import AdminModel from '@model/admin.schema.js';
 
 // agar log bisa menampilkan max:4 deepobject
 util.inspect.defaultOptions.depth = 4;

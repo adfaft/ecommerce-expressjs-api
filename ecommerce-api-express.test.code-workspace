@@ -4,9 +4,4 @@
 			"path": "."
 		}
 	],
-	"settings": {
-		"search.exclude": {
-			"**/dist/**": true
-		}
-	}
 }

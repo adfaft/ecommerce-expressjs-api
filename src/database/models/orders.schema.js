@@ -4,8 +4,6 @@ import productSchema from "./product.schema";
 import addressSchema from "./address.schema";
 
 
-mongoose.set("strictQuery", true);
-
 export const productShortSchema = new mongoose.Schema({
     productId: String,
     productUuid: String,
@@ -138,3 +136,7 @@ export const Orders = mongoose.model("orders", orderSchema);
 export const OrderAttachments = mongoose.model("order_attachments", orderAttachmentSchema);
 
 export default Orders;
+
+// -----------------
+// --- API QUERY ---
+// -----------------

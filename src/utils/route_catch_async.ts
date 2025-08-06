@@ -1,4 +1,4 @@
-export const routeCatchAsync = (fn:Function) =>
+export const asyncHandler = (fn:Function) =>
 
     function asyncUtilWrap(...args: any[]) {
         const fnReturn = fn(...args)
@@ -7,4 +7,4 @@ export const routeCatchAsync = (fn:Function) =>
         return Promise.resolve(fnReturn).catch(next)
     }
 
-export default routeCatchAsync; 
+export default asyncHandler; 

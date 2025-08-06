@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import asyncHandler from '@app/utils/route_catch_async.js';
 import { ErrorStatus } from '@app/utils/error.js';
-import validation, { createValidation, findByIdValidation, findQueryValidation, updateValidation } from './posts.validation.js';
+import validation, { createValidation, findByIdValidation, findQueryValidation, updateValidation } from './provinces.validation.js';
 
-import Model, { IPost, querySearch, refill } from '@app/database/models/posts.schema.js';
+import Model, { querySearch } from '@app/database/models/address_provinces.schema.js';
 import z from 'zod';
 import MongoPaginateHelper from '@app/utils/mongodb_query.js';
 
@@ -104,9 +104,7 @@ export const create = asyncHandler(async function (req: Request, res: Response, 
 
     // validate if exist
     const exists = await Model.findOne({
-        slug: validate.data.slug,
-        type: validate.data.type,
-        lang: validate.data.lang
+        slug: validate.data.name,
     });
 
     if( exists ){
@@ -117,7 +115,7 @@ export const create = asyncHandler(async function (req: Request, res: Response, 
     let result = await Model.create(validate.data);
 
     // repopulate relation extra attributes
-    result = await refill(result);
+    // result = await refill(result);
 
     await beforeRenderHook(req, res, next);
 
@@ -159,7 +157,7 @@ export const updateById = asyncHandler(async function (req: Request, res: Respon
     await model.save();
 
     // repopulate
-    const result = await refill(model);
+    const result = model;
 
     await beforeRenderHook(req, res, next);
 
